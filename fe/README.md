@@ -10,8 +10,8 @@ Deze map (`fe/`) bevat alles wat specifiek is voor FE en niet uit upstream komt.
 |---|---|
 | `configs/heatpump_controller_q/duo_fe.yaml` | Het FE-build-target. Neemt upstream `duo.yaml` ongewijzigd over en zet de FE-onderdelen erbovenop |
 | `openquatt/fe/` | FE-packages (YAML), volgt in fase 2 |
-| `openquatt/includes/fe/` | FE-logica (C++-headers), volgt in fase 2 |
-| `tests/host/fe_*_test.cpp` | Host-tests voor de FE-logica, volgt in fase 2 |
+| `openquatt/includes/fe/` | FE-logica (C++-headers): `oq_dhw_controller_logic.h` |
+| `tests/host/fe_*_test.cpp` | Host-tests voor de FE-logica; draaien in CI met de upstream-tests mee |
 | `fe/port-plan.md` | Het portplan, met I/O-keuzes en onderbouwing |
 
 ## Aansluitingen (besloten 01-10-2026)
@@ -44,9 +44,9 @@ Na een merge controleer je of de FE-haken in upstream-bestanden nog op hun plek 
 
 | Fase | Inhoud | Status |
 |---|---|---|
-| 1 | Repo, FE-build-target, CI bouwt alleen FE | in uitvoering |
-| 2 | DHW-logica en host-tests overzetten (`oq_dhw_controller_logic.h`), nog zonder aansturing | gepland |
-| 3 | I/O: twee DS18B20 op T, klep op R2, terugmelding op GPIO15, element op R1 met arbitrage | gepland |
+| 1 | Repo, FE-build-target, CI bouwt alleen FE | PR #1 |
+| 2 | DHW-logica en host-tests overzetten (`oq_dhw_controller_logic.h`), nog zonder aansturing | PR #2 |
+| 3 | I/O: twee DS18B20 op T, klep op R2, terugmelding op GPIO15, element op R1 met arbitrage. Let op: filter de 85,0 °C-opstartwaarde van de DS18B20 weg (zie `port-plan.md` §3) | gepland |
 | 4 | Naad met het regelhart: supervisory (DHW = CM6, element-only = CM7), thermal request, flow, Power House, cooling | gepland |
 | 5 | Web-app en HA-dashboard | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
