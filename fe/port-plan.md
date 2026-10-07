@@ -71,6 +71,8 @@ Montage:
 - Controleer of de Q een pull-up van 4,7 kΩ op DATA heeft.
 - Bekabel lineair, geen ster, en kort, vanwege de 3,3 V-bus.
 
+**DS18B20-valkuil (fase 3):** een DS18B20 geeft na een spanningsreset eenmalig **85,0 °C**. De DHW-logica accepteert alles van −10 tot en met 85 °C als plausibel (`temp_min_c` / `temp_max_c`). Die opstartwaarde zou dus als echte tank-top-temperatuur tellen. Gevolg: geen start (de tank lijkt heet), en in het ergste geval een legionella-hold (≥ 68 °C) die onterecht als voltooid wordt geboekt. Oplossing in de YAML-laag, zonder logicawijziging: een filter op beide `dallas_temp`-sensoren dat exact 85,0 weggooit. Een echte 85 °C komt in deze tank niet voor; het legionella-doel is 68 °C.
+
 **Later, na de port, eerst als voorstel:** de top-sensor is een enkel storingspunt. Een mogelijke terugval bij een defecte top: starten en stoppen op bottom, met legionella geblokkeerd tot de top weer plausibel is.
 
 **Advies:** R2 voor de klep, R1 voor het element (Full Electric, dus R1 is vrij), klep-terugmelding op de Q-stekker pin 3/4, en tank top + tank bottom als twee DS18B20's op T.
