@@ -68,9 +68,15 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 1 | Repo, FE-build-target, CI bouwt alleen FE | PR #1 |
 | 2 | DHW-logica en host-tests overzetten (`oq_dhw_controller_logic.h`), nog zonder aansturing | PR #2 |
 | 3 | I/O: twee DS18B20 op T (85,0 °C-opstartwaarde gefilterd), klep op R2, terugmelding op GPIO44, element op R1, bankproef-schakelaars | PR #3 |
-| 4 | Naad met het regelhart: supervisory (DHW = CM6, element-only = CM7), thermal request, flow, Power House, cooling | gepland |
+| 4 | Naad met het regelhart: supervisory (DHW = CM7, element-only = CM8; tijdelijk, zie hieronder), thermal request, flow, Power House, cooling | gepland |
 | 5 | Web-app en HA-dashboard | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
+
+## Control modes
+
+Warm water krijgt **CM7** en element-only (legionella of boost zonder warmtepomp) **CM8**. Upstream gebruikt CM0–CM5, CM98 en CM100; CM4 is daar "alleen ketel na een warmtepompstoring" en dus niet bruikbaar voor DHW, zoals in de LilyGO-build.
+
+De nummers zijn **tijdelijk** (besloten 07-10-2026) en kunnen wijzigen als upstream er een eigen keuze voor maakt. Daarom staan ze in fase 4 op één plek als constante. HA-dashboards en automatiseringen uit de LilyGO-build (DHW = CM4, element-only = CM6) moeten bij de overstap mee.
 
 ## Versies
 

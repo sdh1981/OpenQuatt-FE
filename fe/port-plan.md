@@ -111,7 +111,7 @@ Maak één smalle interface (`oq_dhw_bridge.h`: `dhw_request()`, `dhw_mode_activ
 | Haakpunt | Wat DHW nodig heeft | Upstream-plek |
 |---|---|---|
 | Supervisory | DHW-vraag als thermische vraag; eigen CM-nummer; prioriteit boven koelen; element-only; ontluchten met klepstand | `oq_hp_supervisory_logic.h`, `oq_supervisory_state_logic.h` (+ `_runtime.h`) |
-| CM-nummering | CM4 is bezet. Upstream gebruikt CM6/CM7 niet (alleen CM99 komt voor) | Voorstel: DHW = **CM6**, element-only = **CM7**. Check de web-app, decision log en telemetrie |
+| CM-nummering | CM4 is bezet. Upstream gebruikt CM6–CM8 niet; de enige `case 6`/`case 7` in de code horen bij de OTA-fase en de logniveaus (gecontroleerd 07-10) | **Besloten (07-10), tijdelijk:** DHW = **CM7**, element-only = **CM8**. Eén constante, zodat een latere upstream-keuze een kleine wijziging blijft |
 | Thermal request | Strategie "hot water": niveau 0–10, single-lead-HP, max-boost | `oq_thermal_request_logic.h` / `_runtime.h` |
 | Flow | Apart DHW-flowsetpoint | `oq_flow_control_logic.h`, `oq_flow_runtime.h` |
 | Power House | Leren/UA-update overslaan tijdens DHW | `oq_power_house_runtime.h`, `oq_ph_learning_runtime.h`. Belangrijk: de Q heeft learning **aan** (`OQ_POWER_HOUSE_LEARNING_TARGET=1`), en DHW-cycli vervuilen anders het huismodel |
