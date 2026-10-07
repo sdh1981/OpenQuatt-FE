@@ -147,5 +147,4 @@ Maak één smalle interface (`oq_dhw_bridge.h`: `dhw_request()`, `dhw_mode_activ
 - Gebruikt upstream GPIO15 nog ergens anders dan voor de pulsteller (flow-autodetectie, quickstart, usage-telemetry `q_flow_source_select`)? Dat moet je weten voordat je de pin ombestemt.
 - Zijn GPIO8, 17 of 43/44 ergens op de Q-print bereikbaar (testpad of header)? Vraag dit aan Electropaultje.
 - Leg de schakelvermogens van R1 en R2 naast de contactorspoel en de klepmotor. Upstream noemt alleen "potentiaalvrij".
-- Gebruikt upstream CM6/CM7 ergens in de web-app, decision log of telemetrie?
 - Zijn er upstream plekken (quickstart, Power House, web-app) die bij `oq_aux_heat_source_present = uit` nog R1-gerelateerde instellingen tonen of schrijven? Die moeten verborgen worden in het DHW-target.
