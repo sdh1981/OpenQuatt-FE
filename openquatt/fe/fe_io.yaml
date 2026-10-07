@@ -27,10 +27,14 @@ substitutions:
   fe_element_test_max_s: "120"
   fe_element_test_max_top_c: "65"
 
+# De FE-headers staan in openquatt/includes/fe/ en komen via de map-include van
+# upstream (oq_cpp_headers_dir) al in main.cpp. Ze hier nogmaals als los bestand
+# opnemen geeft een tweede, platte kopie; of GCC die onder #pragma once als
+# dezelfde herkent, hangt af van de mtime-seconde van het kopiëren.
+# De vlag maakt de runtime alleen in het FE-target zichtbaar.
 esphome:
-  includes:
-    - ../../openquatt/includes/fe/oq_fe_io_logic.h
-    - ../../openquatt/includes/fe/oq_fe_io_runtime.h
+  build_flags:
+    - -DOQ_FE_TARGET=1
 
 # GPIO43/44 zijn UART0. De logger hoort op USB te blijven, ook als de
 # ESPHome-standaard ooit verandert.

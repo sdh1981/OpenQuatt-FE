@@ -3,6 +3,9 @@
 
 #include "oq_fe_io_logic.h"
 
+// De map-include neemt deze header in elk target op; alleen het FE-target heeft
+// de entiteiten waar de runtime naar verwijst.
+#if OQ_FE_TARGET
 namespace oq_fe_io_runtime {
 
 struct TickConfig {
@@ -116,3 +119,4 @@ inline Runtime& runtime() {
 }
 
 }  // namespace oq_fe_io_runtime
+#endif
