@@ -1,0 +1,118 @@
+// OpenQuatt FE - runtime voor R1/R2 en de bankproeven (alleen in het FE-target).
+#pragma once
+
+#include "oq_fe_io_logic.h"
+
+namespace oq_fe_io_runtime {
+
+struct TickConfig {
+  uint32_t valve_test_max_ms;
+  uint32_t element_test_max_ms;
+  float element_test_max_top_c;
+};
+
+class Runtime {
+ public:
+  // Upstream schrijft R1 en R2 via de template-outputs in fe_io.yaml.
+  void set_boiler_request(bool on) {
+    boiler_request_ = on;
+    apply_();
+  }
+
+  void set_aux_relay_request(bool on) {
+    aux_relay_request_ = on;
+    apply_();
+  }
+
+  // Fase 4: de DHW-regeling meldt hier zijn klep- en elementvraag.
+  void set_dhw_requests(bool valve, bool element) {
+    dhw_valve_request_ = valve;
+    dhw_element_request_ = element;
+    apply_();
+  }
+
+  void tick(const TickConfig& cfg) {
+    const uint32_t now_ms = (uint32_t)millis();
+    const bool source_present = id(oq_aux_heat_source_present).state;
+
+    const auto valve = oq_fe_io::update_test(valve_test_, id(fe_test_dhw_valve).state, id(fe_r2_dhw_valve).state,
+                                             now_ms, cfg.valve_test_max_ms);
+    const auto element = oq_fe_io::update_test(
+        element_test_, id(fe_test_dhw_element).state,
+        oq_fe_io::element_test_allowed(source_present, id(fe_dhw_tank_top).state, cfg.element_test_max_top_c), now_ms,
+        cfg.element_test_max_ms);
+    valve_test_on_ = valve.on;
+    element_test_on_ = element.on;
+    if (valve.release_request) {
+      ESP_LOGI("fe.io", "DHW valve test %s", oq_fe_io::test_status_text(valve.status));
+      id(fe_test_dhw_valve).turn_off();
+    }
+    if (element.release_request) {
+      ESP_LOGI("fe.io", "DHW element test %s", oq_fe_io::test_status_text(element.status));
+      id(fe_test_dhw_element).turn_off();
+    }
+    apply_();
+
+    publish_text_(id(fe_dhw_valve_test_status), valve_status_, oq_fe_io::test_status_text(valve.status));
+    publish_text_(id(fe_dhw_element_test_status), element_status_, oq_fe_io::test_status_text(element.status));
+    const auto position =
+        oq_fe_io::valve_position(id(fe_dhw_valve_feedback).has_state(), id(fe_dhw_valve_feedback).state);
+    publish_text_(id(fe_dhw_valve_position), position_, oq_fe_io::valve_position_text(position));
+  }
+
+ private:
+  void apply_() {
+    const bool source_present = id(oq_aux_heat_source_present).state;
+    const bool r1 = oq_fe_io::r1_output(source_present, boiler_request_, dhw_element_request_ || element_test_on_);
+    const bool r2 =
+        oq_fe_io::r2_output(id(fe_r2_dhw_valve).state, aux_relay_request_, dhw_valve_request_ || valve_test_on_);
+    write_(id(fe_r1_gpio_out), r1, r1_written_, r1_known_, "R1");
+    write_(id(fe_r2_gpio_out), r2, r2_written_, r2_known_, "R2");
+    if (!id(fe_dhw_element_active).has_state() || id(fe_dhw_element_active).state != (r1 && !source_present)) {
+      id(fe_dhw_element_active).publish_state(r1 && !source_present);
+    }
+  }
+
+  template <typename Output>
+  static void write_(Output* output, bool on, bool& written, bool& known, const char* name) {
+    if (known && written == on) return;
+    if (on) {
+      output->turn_on();
+    } else {
+      output->turn_off();
+    }
+    ESP_LOGD("fe.io", "%s %s", name, on ? "ON" : "OFF");
+    written = on;
+    known = true;
+  }
+
+  template <typename Sensor>
+  static void publish_text_(Sensor* sensor, const char*& last, const char* text) {
+    if (last == text) return;
+    sensor->publish_state(text);
+    last = text;
+  }
+
+  bool boiler_request_ = false;
+  bool aux_relay_request_ = false;
+  bool dhw_valve_request_ = false;
+  bool dhw_element_request_ = false;
+  bool valve_test_on_ = false;
+  bool element_test_on_ = false;
+  oq_fe_io::TestState valve_test_{};
+  oq_fe_io::TestState element_test_{};
+  bool r1_written_ = false;
+  bool r1_known_ = false;
+  bool r2_written_ = false;
+  bool r2_known_ = false;
+  const char* valve_status_ = nullptr;
+  const char* element_status_ = nullptr;
+  const char* position_ = nullptr;
+};
+
+inline Runtime& runtime() {
+  static Runtime value;
+  return value;
+}
+
+}  // namespace oq_fe_io_runtime
