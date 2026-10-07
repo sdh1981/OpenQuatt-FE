@@ -74,12 +74,12 @@ class Runtime {
   }
 
   template <typename Output>
-  static void write_(Output* output, bool on, bool& written, bool& known, const char* name) {
+  static void write_(Output& output, bool on, bool& written, bool& known, const char* name) {
     if (known && written == on) return;
     if (on) {
-      output->turn_on();
+      output.turn_on();
     } else {
-      output->turn_off();
+      output.turn_off();
     }
     ESP_LOGD("fe.io", "%s %s", name, on ? "ON" : "OFF");
     written = on;
@@ -87,9 +87,9 @@ class Runtime {
   }
 
   template <typename Sensor>
-  static void publish_text_(Sensor* sensor, const char*& last, const char* text) {
+  static void publish_text_(Sensor& sensor, const char*& last, const char* text) {
     if (last == text) return;
-    sensor->publish_state(text);
+    sensor.publish_state(text);
     last = text;
   }
 
