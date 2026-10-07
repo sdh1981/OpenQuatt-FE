@@ -52,10 +52,10 @@ Wat de DHW-laag nu op de LilyGO gebruikt, en de Q-opties daarvoor:
 
 | DHW-functie | Nu (LilyGO) | Op de Q | Advies |
 |---|---|---|---|
-| **3-wegklep** (bekrachtigen = boilerpad) | relais GPIO40 | **R2** (wisselrelais NC/COM/NO). Upstream noemt "klep" al als toepassing van R2 | **R2**, met een nieuwe functie "DHW valve" in `oq_aux_relay_control`. R2 is dan niet meer vrij voor andere taken |
+| **3-wegklep** (bekrachtigen = boilerpad) | relais GPIO40 | **R2** (wisselrelais NC/COM/NO) | **Besloten (07-10): R2.** FE neemt de fysieke uitgang over via een template-output met dezelfde id; schakelaar **R2 is DHW valve**. Upstream blijft ongewijzigd |
 | **Contactorspoel 3 kW-element** | relais GPIO48 | **R1** (COM/NO). Upstream is R1 de CV-ketel. **Besloten (01-10): Full Electric, geen ketel**, dus R1 is vrij | **R1.** Upstream declareert `boiler_relay_out` op GPIO16 altijd (in `oq_boiler_control.yaml`), en ESPHome weigert een tweede output op dezelfde pin. Het DHW-element gebruikt daarom diezelfde output, met één eigenaar: DHW mag R1 alleen schakelen zolang **"Auxiliary heat source connected"** (`oq_aux_heat_source_present`) uit staat. Upstream schakelt dan zelf al assist en fault-fallback uit en zet het ketel-transport slapend (CM3/CM4 komen niet voor). De OTB-klem blijft ongebruikt |
 | **Tank bottom** | CWT kanaal 2 | **T-klem**: DS18B20 op 1-Wire, GPIO18 (`+3.3V`/`GND`/`DATA`) | **Besloten (01-10):** DS18B20 op T. De T-klem is daarmee bezet. Upstream gebruikt dezelfde bus voor een optionele DS18B20 als lokale aanvoertemperatuur, dus de DHW-sensor wordt een tweede `dallas_temp`-sensor op de bestaande `one_wire`-bus, met een vast adres. Laat **Lokale aanvoertemperatuur** op `PT1000` staan |
-| **Klep-terugmelding** (droog contact, aux) | drive GPIO11 + sense GPIO13 | T is nu bezet. **Q-stekker pin 3** (flowpuls, GPIO15, interne pull-up) + pin 4 (GND) | **Q-stekker pin 3/4**: het aux-contact trekt GPIO15 naar GND. Dat werkt omdat jouw flow uit de buitenunit komt (register 2138), niet uit een lokale flowmeter. Wel een upstream-ingreep: het Q-profiel claimt GPIO15 voor de pulsteller (`hpcq_flow_pin`). In je DHW-target moet die pulsteller eruit, en **Q Flow Source** komt vast op `Outdoor unit`. Alternatief: zonder terugmelding, alleen tijdsbewaking. Dat is zwakker, want je FSM gebruikt de feedback in `DHW_PREPARE` |
+| **Klep-terugmelding** (droog contact, aux) | drive GPIO11 + sense GPIO13 | **Tweakers-connector boven**: `3.3V – GPIO43 – GPIO44 – GND` | **Besloten (07-10): GPIO44 + GND**, interne pull-up, contact gesloten = DHW-stand. GPIO43/44 zijn UART0; GPIO43 (TX) wordt bij elke start door de ROM-bootloader aangestuurd, dus een contact naar GND zou daar kortsluiting geven. De logger staat op USB (`USB_SERIAL_JTAG`, nu ook expliciet in `fe_io.yaml`). GPIO15 en de flowpuls blijven ongemoeid upstream |
 | **Tank top** | CWT kanaal 1 | **T-klem**: tweede DS18B20 op dezelfde 1-Wire-bus | **Besloten (01-10):** tweede DS18B20, eigen vast adres. De regellogica blijft ongewijzigd |
 | **Coil in/uit** | CWT kanaal 3/4 | — | Vervalt. De logica behandelt `NAN` als "niet geïnstalleerd", dus er gaat niets kapot. Wat je verliest: de coil-ΔT-plausibiliteit en de rendement/tapdetectie op basis van de coil (zie `dhw-rendement-en-tapdetectie-v0.54.md`) |
 | **T-aanvoer (PT1000)** | CWT kanaal 5 | Eigen PT1000 op de Q-stekker (pin 2/5) | Upstream Q-route |
@@ -77,7 +77,7 @@ Montage:
 
 **Advies:** R2 voor de klep, R1 voor het element (Full Electric, dus R1 is vrij), klep-terugmelding op de Q-stekker pin 3/4, en tank top + tank bottom als twee DS18B20's op T.
 
-**Beslispunten:** alle I/O-keuzes liggen vast (01-10), behalve de bevestiging van de voorstellen voor R2 (klep) en de Q-stekker pin 3/4 (terugmelding).
+**Beslispunten:** alle I/O-keuzes liggen vast (07-10). Reserve: GPIO43 en de SPI-connector (5.0V – SDI – SDO – CLK) samen zijn genoeg voor een tweede MAX31865, mocht je later toch PT1000-tanksensoren willen.
 
 ---
 
@@ -111,7 +111,7 @@ Maak één smalle interface (`oq_dhw_bridge.h`: `dhw_request()`, `dhw_mode_activ
 | Haakpunt | Wat DHW nodig heeft | Upstream-plek |
 |---|---|---|
 | Supervisory | DHW-vraag als thermische vraag; eigen CM-nummer; prioriteit boven koelen; element-only; ontluchten met klepstand | `oq_hp_supervisory_logic.h`, `oq_supervisory_state_logic.h` (+ `_runtime.h`) |
-| CM-nummering | CM4 is bezet. Upstream gebruikt CM6/CM7 niet (alleen CM99 komt voor) | Voorstel: DHW = **CM6**, element-only = **CM7**. Check de web-app, decision log en telemetrie |
+| CM-nummering | CM4 is upstream bezet. Upstream gebruikt CM6–CM11 niet; de enige `case 6`/`case 7` in de code horen bij de OTA-fase en de logniveaus (gecontroleerd 07-10) | **Besloten (07-10):** DHW = **CM10**, opgegeven door upstream (Jeroen). Element-only = **CM11**, voorlopig en nog af te stemmen met upstream. Eén constante |
 | Thermal request | Strategie "hot water": niveau 0–10, single-lead-HP, max-boost | `oq_thermal_request_logic.h` / `_runtime.h` |
 | Flow | Apart DHW-flowsetpoint | `oq_flow_control_logic.h`, `oq_flow_runtime.h` |
 | Power House | Leren/UA-update overslaan tijdens DHW | `oq_power_house_runtime.h`, `oq_ph_learning_runtime.h`. Belangrijk: de Q heeft learning **aan** (`OQ_POWER_HOUSE_LEARNING_TARGET=1`), en DHW-cycli vervuilen anders het huismodel |
@@ -147,5 +147,4 @@ Maak één smalle interface (`oq_dhw_bridge.h`: `dhw_request()`, `dhw_mode_activ
 - Gebruikt upstream GPIO15 nog ergens anders dan voor de pulsteller (flow-autodetectie, quickstart, usage-telemetry `q_flow_source_select`)? Dat moet je weten voordat je de pin ombestemt.
 - Zijn GPIO8, 17 of 43/44 ergens op de Q-print bereikbaar (testpad of header)? Vraag dit aan Electropaultje.
 - Leg de schakelvermogens van R1 en R2 naast de contactorspoel en de klepmotor. Upstream noemt alleen "potentiaalvrij".
-- Gebruikt upstream CM6/CM7 ergens in de web-app, decision log of telemetrie?
 - Zijn er upstream plekken (quickstart, Power House, web-app) die bij `oq_aux_heat_source_present = uit` nog R1-gerelateerde instellingen tonen of schrijven? Die moeten verborgen worden in het DHW-target.

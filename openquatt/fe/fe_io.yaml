@@ -1,0 +1,183 @@
+# ==============================================================================
+# OpenQuatt FE - I/O voor de DHW-boiler op de Heatpump Controller Q
+# ==============================================================================
+#
+# Wat dit package doet (fase 3, nog zonder DHW-regeling):
+#   - R1 en R2 krijgen één eigenaar: upstream schrijft via een template-output
+#     naar oq_fe_io_runtime, die per relais bepaalt wat er op de pin komt.
+#       R1: bijverwarmer aangesloten -> upstream ketel; anders DHW-element.
+#       R2: "R2 is DHW valve" aan -> 3-wegklep; anders upstream hulprelais.
+#   - Tank top en tank bottom als DS18B20 op de bestaande T-bus (vast adres),
+#     met de 85,0 C-opstartwaarde weggefilterd.
+#   - Klep-terugmelding op GPIO44 (Tweakers-connector), contact naar GND.
+#   - Bankproef-schakelaars voor klep en element, met maximale looptijd.
+#
+# Upstream-bestanden blijven ongewijzigd. Upstream's eigen DS18B20 (index 0)
+# zou op deze bus een van de tanksensoren lezen; die wordt intern gemaakt en de
+# lokale aanvoerbron blijft PT1000.
+# ==============================================================================
+
+substitutions:
+  # Adressen invullen na de eerste start: de log van one_wire toont ze.
+  # Een onbekend adres geeft NAN, en zonder geldige tank top blijft DHW uit.
+  fe_dallas_tank_top_address: "0x0000000000000000"
+  fe_dallas_tank_bottom_address: "0x0000000000000001"
+  fe_valve_feedback_pin: "GPIO44"
+  fe_valve_test_max_s: "300"
+  fe_element_test_max_s: "120"
+  fe_element_test_max_top_c: "65"
+
+# De FE-headers staan in openquatt/includes/fe/ en komen via de map-include van
+# upstream (oq_cpp_headers_dir) al in main.cpp. Ze hier nogmaals als los bestand
+# opnemen geeft een tweede, platte kopie; of GCC die onder #pragma once als
+# dezelfde herkent, hangt af van de mtime-seconde van het kopiëren.
+# De vlag maakt de runtime alleen in het FE-target zichtbaar.
+esphome:
+  build_flags:
+    - -DOQ_FE_TARGET=1
+
+# GPIO43/44 zijn UART0. De logger hoort op USB te blijven, ook als de
+# ESPHome-standaard ooit verandert.
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+output:
+  - id: !remove boiler_relay_out
+  - id: !remove controller_aux_relay_out
+  - platform: template
+    id: boiler_relay_out
+    type: binary
+    write_action:
+      - lambda: |-
+          oq_fe_io_runtime::runtime().set_boiler_request(state);
+  - platform: template
+    id: controller_aux_relay_out
+    type: binary
+    write_action:
+      - lambda: |-
+          oq_fe_io_runtime::runtime().set_aux_relay_request(state);
+  - platform: gpio
+    id: fe_r1_gpio_out
+    pin: ${oq_boiler_relay_pin}
+  - platform: gpio
+    id: fe_r2_gpio_out
+    pin:
+      number: ${controller_aux_relay_pin}
+      ignore_strapping_warning: true
+
+sensor:
+  - id: !extend water_supply_temp_ds18b20
+    internal: true
+
+  - platform: dallas_temp
+    id: fe_dhw_tank_top
+    name: "DHW Tank Top"
+    icon: mdi:thermometer-high
+    one_wire_id: oq_local_temp_bus
+    address: ${fe_dallas_tank_top_address}
+    update_interval: 10s
+    accuracy_decimals: 1
+    filters:
+      - lambda: |-
+          if (oq_fe_io::ds18b20_power_on_value(x)) return {};
+          return x;
+
+  - platform: dallas_temp
+    id: fe_dhw_tank_bottom
+    name: "DHW Tank Bottom"
+    icon: mdi:thermometer-low
+    one_wire_id: oq_local_temp_bus
+    address: ${fe_dallas_tank_bottom_address}
+    update_interval: 10s
+    accuracy_decimals: 1
+    filters:
+      - lambda: |-
+          if (oq_fe_io::ds18b20_power_on_value(x)) return {};
+          return x;
+
+binary_sensor:
+  - platform: gpio
+    id: fe_dhw_valve_feedback
+    name: "DHW Valve Feedback"
+    icon: mdi:valve
+    entity_category: diagnostic
+    pin:
+      number: ${fe_valve_feedback_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    filters:
+      - delayed_on_off: 200ms
+
+  - platform: template
+    id: fe_dhw_element_active
+    name: "DHW Element Active"
+    icon: mdi:heating-coil
+    device_class: heat
+
+switch:
+  - platform: template
+    id: fe_r2_dhw_valve
+    name: "R2 is DHW valve"
+    icon: mdi:valve
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_off:
+      - switch.turn_off: fe_test_dhw_valve
+
+  - platform: template
+    id: fe_test_dhw_valve
+    name: "DHW Test Valve"
+    icon: mdi:valve-open
+    entity_category: config
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+
+  - platform: template
+    id: fe_test_dhw_element
+    name: "DHW Test Element"
+    icon: mdi:heating-coil
+    entity_category: config
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+
+text_sensor:
+  - platform: template
+    id: fe_dhw_valve_position
+    name: "DHW Valve Position"
+    icon: mdi:valve
+    entity_category: diagnostic
+    update_interval: never
+
+  - platform: template
+    id: fe_dhw_valve_test_status
+    name: "DHW Test Valve Status"
+    entity_category: diagnostic
+    update_interval: never
+
+  - platform: template
+    id: fe_dhw_element_test_status
+    name: "DHW Test Element Status"
+    entity_category: diagnostic
+    update_interval: never
+
+interval:
+  - interval: 1s
+    startup_delay: 5s
+    then:
+      - lambda: |-
+          oq_fe_io_runtime::runtime().tick({
+              (uint32_t) (${fe_valve_test_max_s} * 1000UL),
+              (uint32_t) (${fe_element_test_max_s} * 1000UL),
+              ${fe_element_test_max_top_c},
+          });
+          // Op deze bus leest upstream's DS18B20 een tanksensor: als aanvoer-
+          // bron is alleen de PT1000 veilig.
+          if (id(oq_local_supply_temp_source).current_option() != "PT1000") {
+            ESP_LOGW("fe.io", "Local supply source DS18B20 is not available on FE; restoring PT1000");
+            auto call = id(oq_local_supply_temp_source).make_call();
+            call.set_option("PT1000");
+            call.perform();
+          }
