@@ -4,6 +4,9 @@
 #include <stdint.h>
 
 #include "oq_flow_control_logic.h"
+#if OQ_FE_TARGET
+#include "../fe/oq_fe_dhw_bridge.h"  // FE: DHW-flowsetpoint (CM10)
+#endif
 #include "../service/oq_service_logic.h"
 #include "../service/tasks/oq_manual_hp_logic.h"
 
@@ -154,9 +157,16 @@ class Runtime {
     } else {
       const bool cooling_target = oq_flow_control::uses_cooling_setpoint(
           cm_code, oq_manual_hp::owns_control(), id(oq_manual_hp1_mode_code), id(oq_manual_hp2_mode_code));
+      float normal_setpoint_lph = id(oq_flow_setpoint_lph).state;
+#if OQ_FE_TARGET
+      // FE: in CM10 stuurt de pomp op het DHW-setpoint.
+      if (cm_code == oq_fe_dhw_bridge::CM_DHW && !isnan(oq_fe_dhw_bridge::state().flow_setpoint_lph)) {
+        normal_setpoint_lph = oq_fe_dhw_bridge::state().flow_setpoint_lph;
+      }
+#endif
       const float setpoint_lph =
           oq_flow_control::select_flow_setpoint(manual_flow_pi, id(oq_manual_flow_setpoint_lph).state, cooling_target,
-                                                id(oq_cooling_flow_setpoint_lph).state, id(oq_flow_setpoint_lph).state);
+                                                id(oq_cooling_flow_setpoint_lph).state, normal_setpoint_lph);
       oq_flow_control::PiInputs inputs{id(flow_rate_selected).state, setpoint_lph,         pwm,
                                        id(oq_flow_kp).state,         id(oq_flow_ki).state, config.dt_s};
       const auto result = oq_flow_control::update_pi(pi_, inputs);

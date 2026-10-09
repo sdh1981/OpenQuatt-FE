@@ -60,7 +60,10 @@ class SupervisoryStateRuntimeContractTest(unittest.TestCase):
 
     def test_flow_guard_covers_heating_preflow_and_compressor_wind_down(self) -> None:
         self.assertIn("const bool heating_flow_req = heating_req || heating_preflow_req;", RUNTIME)
-        self.assertIn("const bool thermal_req = heating_flow_req || cooling_req || manual_hp_thermal_req;", RUNTIME)
+        # FE: de DHW-vraag (CM10) telt mee voor de flow-bewaking.
+        self.assertIn(
+            "const bool thermal_req = heating_flow_req || cooling_req || manual_hp_thermal_req || dhw_req;", RUNTIME
+        )
         self.assertIn(
             "oq_supervisory_state::flow_guard_required(thermal_req, any_hp_compressor_active, actuator_request_active)",
             RUNTIME,
@@ -78,7 +81,8 @@ class SupervisoryStateRuntimeContractTest(unittest.TestCase):
         # Include the bounded Modbus reader added for first-start water samples.
         # Duo single-HP cold start (#705) added per-HP availability wiring.
         total = sum(len(source.splitlines()) for source in (YAML, LOGIC, RUNTIME, PROBE))
-        self.assertLessEqual(total, 2313)  # Three explicit runtime-header dependencies.
+        # FE: +43 regels voor de CM10-haken (achter OQ_FE_TARGET); upstream-budget 2313.
+        self.assertLessEqual(total, 2313 + 43)  # Three explicit runtime-header dependencies.
 
     def test_cold_start_follows_available_heat_pumps(self) -> None:
         # Regression for #705: Duo cold start required both ODU outlet samples

@@ -149,12 +149,12 @@ De bankproef-schakelaars uit fase 3 blijven. Ze werken alleen zolang de DHW-FSM 
 
 ---
 
-## 8. Beslispunten
+## 8. Beslissingen (2026-10-09)
 
-1. **Afbakening:** akkoord met 4a zoals in §1, en snelboost en single-HP pas in 4b?
-2. **Niveau:** beide HP's op niveau 4 als standaard, of liever single-HP met bump (pas in 4b mogelijk)?
-3. **Voorrang:** DHW boven koelen, zoals in de LilyGO-build?
-4. **Legionella:** standaard **aan** (wekelijks)? In de LilyGO-build stond hij aan.
-5. **Entiteitnamen** gelijk houden aan de LilyGO-build?
+1. **Afbakening:** snelboost en single-HP (met tweede-HP-assist en zachte aanloop) gaan **mee in 4a**. Tapdetectie, tarief/PV, adaptief leren en CM11 blijven voor later.
+2. **Niveau:** zoals de LilyGO-build: basisniveau "DHW HP level" (4), teruggeschaald door de **coil-in-mapping** (4→3 bij 40 °C, 3→2 bij 44 °C, 2→1 bij 48 °C, hysterese 0,5 K) en begrensd door de zachte aanloop (3 min per stap). De mapping staat in FE standaard **aan** en leest de uitlaat van de laatste warmtepomp (HP2 in duo), omdat de coil-in-sensor op de Q niet bestaat. Tijdens DHW is dat hetzelfde water dat de spiraal in gaat.
+3. **Voorrang:** DHW gaat voor koelen.
+4. **Legionella:** standaard aan, wekelijks.
+5. **Entiteitnamen:** gelijk aan de LilyGO-build.
 
-Na akkoord bouw ik 4a in één PR, als versie `v0.53.0-fe.2`.
+Gebouwd in `feat/fe-dhw-regelhart` als `v0.53.0-fe.2`.

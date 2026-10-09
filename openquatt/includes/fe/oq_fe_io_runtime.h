@@ -34,16 +34,21 @@ class Runtime {
     apply_();
   }
 
+  // Bankproeven alleen als de DHW-regeling stilstaat (IDLE_CV, geen fout).
+  void set_tests_allowed(bool allowed) { tests_allowed_ = allowed; }
+
   void tick(const TickConfig& cfg) {
     const uint32_t now_ms = (uint32_t)millis();
     const bool source_present = id(oq_aux_heat_source_present).state;
 
-    const auto valve = oq_fe_io::update_test(valve_test_, id(fe_test_dhw_valve).state, id(fe_r2_dhw_valve).state,
-                                             now_ms, cfg.valve_test_max_ms);
+    const auto valve =
+        oq_fe_io::update_test(valve_test_, id(fe_test_dhw_valve).state, tests_allowed_ && id(fe_r2_dhw_valve).state,
+                              now_ms, cfg.valve_test_max_ms);
     const auto element = oq_fe_io::update_test(
         element_test_, id(fe_test_dhw_element).state,
-        oq_fe_io::element_test_allowed(source_present, id(fe_dhw_tank_top).state, cfg.element_test_max_top_c), now_ms,
-        cfg.element_test_max_ms);
+        tests_allowed_ &&
+            oq_fe_io::element_test_allowed(source_present, id(fe_dhw_tank_top).state, cfg.element_test_max_top_c),
+        now_ms, cfg.element_test_max_ms);
     valve_test_on_ = valve.on;
     element_test_on_ = element.on;
     if (valve.release_request) {
@@ -96,6 +101,7 @@ class Runtime {
     last = text;
   }
 
+  bool tests_allowed_ = false;
   bool boiler_request_ = false;
   bool aux_relay_request_ = false;
   bool dhw_valve_request_ = false;

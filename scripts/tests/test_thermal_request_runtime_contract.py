@@ -48,7 +48,8 @@ class ThermalRequestRuntimeContractTest(unittest.TestCase):
             self.assertIn(marker, LOGIC)
             self.assertIn(marker, HOST_TEST)
         total = sum(len(source.splitlines()) for source in (YAML, LOGIC, RUNTIME, HOST_TEST))
-        self.assertLessEqual(total, 1720)
+        # FE: +19 regels voor de DHW-strategie (achter OQ_FE_TARGET); upstream-budget 1720.
+        self.assertLessEqual(total, 1720 + 19)
 
 
 if __name__ == "__main__":
