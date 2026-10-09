@@ -179,10 +179,18 @@ void test_guards_latch_with_release_margin() {
 
 void test_bridge_base_target() {
   using oq_fe_dhw_bridge::base_target;
-  assert(base_target(5, true, false) == oq_fe_dhw_bridge::CM_DHW);  // DHW gaat voor koelen
-  assert(base_target(2, true, false) == 10);
-  assert(base_target(2, true, true) == 1);  // flow-interlock houdt CM1
-  assert(base_target(5, false, false) == 5);
+  assert(base_target(5, true, false, false, false) == oq_fe_dhw_bridge::CM_DHW);  // DHW gaat voor koelen
+  assert(base_target(2, true, false, false, false) == 10);
+  assert(base_target(2, true, false, true, false) == 1);  // flow-interlock houdt CM1
+  assert(base_target(5, false, false, false, false) == 5);
+  // Element-only gaat voor koelen en verwarmen, maar DHW en vorst gaan voor.
+  assert(base_target(2, false, true, false, false) == oq_fe_dhw_bridge::CM_ELEMENT_ONLY);
+  assert(base_target(5, false, true, false, false) == 11);
+  assert(base_target(98, false, true, false, true) == 98);
+  assert(base_target(2, true, true, false, false) == 10);  // legionella of lopende cyclus
+  assert(oq_fe_dhw_bridge::needs_postflow_before_element_only(10));
+  assert(!oq_fe_dhw_bridge::needs_postflow_before_element_only(0));
+  assert(!oq_fe_dhw_bridge::needs_postflow_before_element_only(1));
 }
 
 // De upstream-haak: CM10 laat de HP's in verwarmstand draaien op de DHW-niveaus.

@@ -73,7 +73,8 @@ class Runtime {
     const int task_code = id(oq_commissioning_task_code);
     const bool want_manual = id(oq_flow_control_mode).active_index().value_or(0) == 1;
     const bool cm100_idle = cm_code == 100 && task_code == oq_commissioning::TASK_NONE;
-    const bool flow_idle = cm_code == 0 || cm100_idle;
+    // FE: in element-only (CM11) staan de circulatiepompen uit.
+    const bool flow_idle = cm_code == 0 || cm100_idle || cm_code == 11;
     const bool cm100_task_started =
         cm_code == 100 && task_code != oq_commissioning::TASK_NONE &&
         (last_cm_code_ != 100 || last_task_code_ == oq_commissioning::TASK_NONE || last_task_code_ != task_code);

@@ -276,7 +276,8 @@ inline bool flow_guard_required(bool thermal_request, bool compressor_active, bo
 }
 
 inline bool hold_cm1_until_hp_idle(bool in_cm1, int desired_mode, bool hp_active) {
-  return in_cm1 && (desired_mode == 0 || desired_mode == 98) && hp_active;
+  // FE: ook element-only (CM11) zet de pomp uit, dus eerst de HP's stil.
+  return in_cm1 && (desired_mode == 0 || desired_mode == 98 || desired_mode == 11) && hp_active;
 }
 
 inline bool standby_requires_postflow(int desired_mode, bool hp_active) { return desired_mode == 0 && hp_active; }

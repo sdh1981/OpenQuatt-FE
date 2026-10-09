@@ -116,7 +116,8 @@ class Runtime {
     auto cm_code_to_id = [](int cm) -> const char* {
       if (cm == 100) return "CM100";
 #if OQ_FE_TARGET
-      if (cm == oq_fe_dhw_bridge::CM_DHW) return "CM10";  // FE
+      if (cm == oq_fe_dhw_bridge::CM_DHW) return "CM10";           // FE
+      if (cm == oq_fe_dhw_bridge::CM_ELEMENT_ONLY) return "CM11";  // FE
 #endif
       if (cm == 98) return "CM98";
       if (cm == 5) return "CM5";
@@ -129,7 +130,8 @@ class Runtime {
     auto cm_id_to_code = [](const std::string& cm) -> int {
       if (cm == "CM100") return 100;
 #if OQ_FE_TARGET
-      if (cm == "CM10") return oq_fe_dhw_bridge::CM_DHW;  // FE
+      if (cm == "CM10") return oq_fe_dhw_bridge::CM_DHW;           // FE
+      if (cm == "CM11") return oq_fe_dhw_bridge::CM_ELEMENT_ONLY;  // FE
 #endif
       if (cm == "CM98") return 98;
       if (cm == "CM5") return 5;
@@ -149,7 +151,8 @@ class Runtime {
       if (strcmp(cm_id, "CM4") == 0) return std::string("CM4 - Heating - Boiler Fallback");
       if (strcmp(cm_id, "CM5") == 0) return std::string("CM5 - Cooling");
 #if OQ_FE_TARGET
-      if (strcmp(cm_id, "CM10") == 0) return std::string("CM10 - Hot water");  // FE
+      if (strcmp(cm_id, "CM10") == 0) return std::string("CM10 - Hot water");     // FE
+      if (strcmp(cm_id, "CM11") == 0) return std::string("CM11 - Element only");  // FE
 #endif
       if (strcmp(cm_id, "CM98") == 0) return std::string("CM98 - Anti-Freeze Protection - Water Circulation");
       return std::string("Unknown");
@@ -172,8 +175,10 @@ class Runtime {
 #if OQ_FE_TARGET
     // FE: warm water vraagt CM10 en gaat voor koelen en verwarmen.
     const bool dhw_req = oq_fe_dhw_bridge::state().mode_requested && openquatt_enabled;
+    const bool element_only_req = oq_fe_dhw_bridge::state().element_only_requested && openquatt_enabled;
 #else
     constexpr bool dhw_req = false;
+    constexpr bool element_only_req = false;
 #endif
     const bool power_house_active = (strategy_active_code == 3);
     const bool heating_curve_active = (strategy_active_code == 2);
@@ -488,7 +493,8 @@ class Runtime {
                                : (next_after == 4)  ? "preflow hold for boiler fallback"
                                : (next_after == 5)  ? "pre/postflow hold for cooling"
                                : (next_after == 98) ? "pre/postflow hold for frost"
-                               : (next_after == 10) ? "preflow hold for hot water"  // FE
+                               : (next_after == 10) ? "preflow hold for hot water"      // FE
+                               : (next_after == 11) ? "postflow hold for element only"  // FE
                                                     : "postflow hold for standby";
         ESP_LOGI("supervisory", "CM1 hold started: next_after=%d, heating_req=%d, cooling_req=%d", next_after,
                  (int)heating_req, (int)cooling_req);
@@ -587,7 +593,8 @@ class Runtime {
       }
 #if OQ_FE_TARGET
       // FE: DHW gaat voor koelen en verwarmen; de flow-interlock houdt CM1.
-      base_target = oq_fe_dhw_bridge::base_target(base_target, dhw_req, id(oq_lowflow_fault_active) || flow_low);
+      base_target = oq_fe_dhw_bridge::base_target(base_target, dhw_req, element_only_req,
+                                                  id(oq_lowflow_fault_active) || flow_low, frost);
 #endif
 
       int desired_local = 0;
@@ -637,6 +644,8 @@ class Runtime {
           } else if (cm1_timer_expired && strcmp(cur_cm, "CM1") == 0) {
             if (dhw_req && base_target == 10) {
               desired_local = 10;  // FE: CM1 afgelopen -> warm water
+            } else if (element_only_req && base_target == 11) {
+              desired_local = 11;  // FE: naloop afgelopen -> element-only
             } else if (heating_req && base_target == 4 && fallback_decision.cm4_allowed) {
               desired_local = 4;
             } else if (heating_req && no_hp_available_confirmed && base_target == 1) {
@@ -683,6 +692,7 @@ class Runtime {
             }
 
             cm_transition_reason = (desired_local == 10)   ? "CM1 hold expired -> hot water"
+                                   : (desired_local == 11) ? "CM1 hold expired -> element only"
                                    : (desired_local == 2)  ? "CM1 hold expired -> heating"
                                    : (desired_local == 4)  ? "CM1 hold expired -> boiler fallback"
                                    : (desired_local == 5)  ? "CM1 hold expired -> cooling"
@@ -722,6 +732,21 @@ class Runtime {
                                                                : openquatt_decision_log::REASON_FLOW_PREFLOW;
                 cm_transition_reason = "hot water request held by flow interlock";
               }
+#if OQ_FE_TARGET
+            } else if (element_only_req && base_target == oq_fe_dhw_bridge::CM_ELEMENT_ONLY) {
+              // FE: element-only; vanuit een actieve modus eerst de CM1-naloop.
+              if (current_cm_code == oq_fe_dhw_bridge::CM_ELEMENT_ONLY) {
+                desired_local = oq_fe_dhw_bridge::CM_ELEMENT_ONLY;
+                cm_transition_reason = "element only already active";
+              } else if (oq_fe_dhw_bridge::needs_postflow_before_element_only(current_cm_code)) {
+                start_cm1(oq_fe_dhw_bridge::CM_ELEMENT_ONLY);
+                desired_local = 1;
+                cm_transition_reason = "element only waiting for CM1 postflow";
+              } else {
+                desired_local = oq_fe_dhw_bridge::CM_ELEMENT_ONLY;
+                cm_transition_reason = "element only requested";
+              }
+#endif
             } else if (cooling_req) {
               if (base_target == 5) {
                 if (strcmp(cur_cm, "CM5") == 0) {
@@ -1152,7 +1177,8 @@ class Runtime {
 
     auto apply_sticky_pump_policy = [&]() -> void {
       // Sticky Pump Protection (CM0-only) + pump/PWM ownership.
-      const bool in_cm0 = (strcmp(desired_cm, "CM0") == 0);
+      // FE: element-only (CM11) rust als CM0: pomp uit, met sticky-bescherming.
+      const bool in_cm0 = (strcmp(desired_cm, "CM0") == 0) || (strcmp(desired_cm, "CM11") == 0);
       const uint32_t sticky_wait_ms = oq_supervisory_state::seconds_to_ms(tick.cm0_sticky_wait_s);
       const uint32_t sticky_run_ms = oq_supervisory_state::seconds_to_ms(tick.cm0_sticky_run_s);
       const auto sticky = oq_supervisory_state::update_sticky_pump(
@@ -1177,14 +1203,14 @@ class Runtime {
           (strcmp(desired_cm, "CM100") == 0) && (id(oq_commissioning_task_code) != oq_commissioning::TASK_NONE);
       // Pump failsafe: never stop circulation while any HP is still active.
       // CM100 idle is a service stand, not an active circulation mode.
-      const bool pump_on = (strcmp(desired_cm, "CM0") != 0 && strcmp(desired_cm, "CM100") != 0) || cm100_task_active ||
-                           sticky_active || any_hp_active_guard;
+      const bool pump_on =
+          (!in_cm0 && strcmp(desired_cm, "CM100") != 0) || cm100_task_active || sticky_active || any_hp_active_guard;
       set_select_option(id(hp1_set_pump_mode), pump_on ? "On" : "Off");
 #if OQ_TOPOLOGY_DUO
       set_select_option(id(hp2_set_pump_mode), pump_on ? "On" : "Off");
 #endif
 
-      if (strcmp(desired_cm, "CM0") == 0) {
+      if (in_cm0) {
         // Active HP/defrost keeps the relay On in CM0, so PWM must circulate too.
         const float target_pwm =
             oq_defrost::cm0_pump_target(sticky_active, any_hp_active_guard, tick.sticky_pwm, tick.cm0_pump_stop_ipwm);

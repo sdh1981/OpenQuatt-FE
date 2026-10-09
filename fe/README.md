@@ -11,6 +11,7 @@ Deze map (`fe/`) bevat alles wat specifiek is voor FE en niet uit upstream komt.
 | `configs/heatpump_controller_q/duo_fe.yaml` | Het FE-build-target. Neemt upstream `duo.yaml` ongewijzigd over en zet de FE-onderdelen erbovenop |
 | `openquatt/fe/fe_io.yaml` | FE-I/O: R1/R2-eigenaarschap, tanksensoren, klep-terugmelding, bankproef |
 | `openquatt/fe/fe_dhw.yaml` | DHW-regeling: instellingen, status en de 2 s-tick van `oq_fe_dhw_runtime` |
+| `openquatt/fe/fe_dhw_tank.yaml` | Tapdetectie, standby-loss-lerer, ETA's, element-only (CM11) en de ruimtetemperatuur |
 | `openquatt/includes/fe/` | FE-logica (C++-headers): de DHW-toestandsmachine, de niveaulogica, de bridge naar het regelhart en de runtimes |
 | `tests/host/fe_*_test.cpp` | Host-tests voor de FE-logica; draaien in CI met de upstream-tests mee |
 | `fe/port-plan.md` | Het portplan, met I/O-keuzes en onderbouwing |
@@ -70,7 +71,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 2 | DHW-logica en host-tests overzetten (`oq_dhw_controller_logic.h`), nog zonder aansturing | PR #2 |
 | 3 | I/O: twee DS18B20 op T (85,0 °C-opstartwaarde gefilterd), klep op R2, terugmelding op GPIO44, element op R1, bankproef-schakelaars | PR #3 |
 | 4a | DHW stuurt de warmtepompen: CM10, eigen strategie en flow-setpoint, coil-in-mapping op de HP-uitlaat, zachte aanloop, single-HP met assist, snelboost met bewaking, legionella | PR #5 |
-| 4c | Tarief/PV, adaptief leren, tapdetectie, element-only (CM11) | gepland |
+| 4c | Tapdetectie, standby-loss-lerer met ETA's, element-only (CM11); tarief/PV en adaptief leren vervallen | PR #7 |
 | 5 | Web-app en HA-dashboard | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
@@ -80,11 +81,12 @@ Elke haak staat achter `#if OQ_FE_TARGET` of is in een upstream-build onbereikba
 
 | Bestand | Haak |
 |---|---|
-| `control/oq_supervisory_state_runtime.h` | DHW-vraag, basisdoel CM10, CM1-voorloop en -afloop, naloop na CM10, CM-namen |
+| `control/oq_supervisory_state_runtime.h` | DHW- en element-only-vraag, basisdoel CM10/CM11, CM1-voor- en naloop, CM-namen; pompen en sticky-bescherming in CM11 zoals in CM0 |
+| `control/oq_supervisory_state_logic.h` | `hold_cm1_until_hp_idle` ook voor CM11 |
 | `control/oq_thermal_request_logic.h` | CM10 → verwarmstand met `STRATEGY_DHW`; niveaus uit `oq_fe_dhw_bridge` |
-| `control/oq_flow_runtime.h` | Flow-setpoint in CM10 |
+| `control/oq_flow_runtime.h` | Flow-setpoint in CM10; CM11 is flow-idle |
 | `control/oq_thermal_actuator_runtime.h` | CM10 in de melding "frequentiegrens blokkeert start" |
-| `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (43 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
+| `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (70 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
 
 ## Control modes
 
