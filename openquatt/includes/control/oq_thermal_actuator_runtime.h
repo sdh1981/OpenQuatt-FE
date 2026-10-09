@@ -409,8 +409,8 @@ class Runtime {
     const auto incident = id(oq_incident_manager).get_outputs(is_hp1 ? 1U : 2U);
     const int minimum = oq_frequency_policy::minimum_automatic_frequency_hz(
         cycle.frequency.configured_v2, cycle.frequency.snapshot(is_hp1), cm == 5 ? 1 : 2);
-    const bool blocked = !cycle.manual_service_active && (cm == 2 || cm == 3 || cm == 5) && requested > 0 &&
-                         this->previous_applied_(is_hp1) == 0 && !incident.running_confirmed &&
+    const bool blocked = !cycle.manual_service_active && (cm == 2 || cm == 3 || cm == 5 || cm == 10 /* FE: CM10 */) &&
+                         requested > 0 && this->previous_applied_(is_hp1) == 0 && !incident.running_confirmed &&
                          oq_frequency_policy::cap_below_minimum(cycle.frequency.cap_hz, minimum);
     uint32_t& previous = this->last_frequency_limit_blocks_[is_hp1 ? 0 : 1];
     const bool silent = id(oq_silent_active).state;

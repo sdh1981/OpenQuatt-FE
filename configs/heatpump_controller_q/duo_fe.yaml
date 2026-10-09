@@ -5,7 +5,7 @@
 # R2, 3 kW element on R1, tank top/bottom DS18B20 on T). The upstream entrypoint
 # is included unchanged; FE-specific ownership lives under openquatt/fe/.
 substitutions:
-  project_version: "v0.53.0-fe.1"
+  project_version: "v0.53.0-fe.2"
   # FE firmware must never pull an upstream image over itself: OTA manifests
   # point at this repository, and the single/duo switch is disabled because no
   # FE single target exists.
@@ -21,3 +21,4 @@ esphome:
 packages:
   openquatt_q_duo: !include duo.yaml
   openquatt_fe_io: !include ../../openquatt/fe/fe_io.yaml
+  openquatt_fe_dhw: !include ../../openquatt/fe/fe_dhw.yaml

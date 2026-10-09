@@ -1,0 +1,619 @@
+# ==============================================================================
+# OpenQuatt FE - DHW-regeling (fase 4a)
+# ==============================================================================
+#
+# Tikt oq_fe_dhw_runtime: de DHW-toestandsmachine, de compressorniveaus en de
+# naad naar het regelhart (CM10). Namen en standaardwaarden komen uit de
+# LilyGO-build, zodat de entity-id's in Home Assistant gelijk blijven.
+#
+# Afwijkingen van de LilyGO-build:
+#   - "DHW coil-in level mapping" staat standaard aan en leest de uitlaat van
+#     de laatste warmtepomp; de coil-in-sensor bestaat op de Q niet.
+#   - Tarief, PV, adaptief leren, tapdetectie en element-only (CM11) volgen in 4c.
+# ==============================================================================
+
+globals:
+  - id: oq_dhw_legionella_last_done_epoch_s
+    type: int64_t
+    restore_value: true
+    initial_value: '0'
+
+number:
+  - platform: template
+    id: oq_dhw_start_top_c
+    name: "DHW start top"
+    icon: mdi:thermometer-chevron-down
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 38
+    max_value: 50
+    step: 0.5
+    initial_value: 46
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_hp_stop_top_c
+    name: "DHW HP stop top"
+    icon: mdi:thermometer-chevron-up
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 42
+    max_value: 56
+    step: 0.5
+    initial_value: 49
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_hp_level
+    name: "DHW HP level"
+    icon: mdi:speedometer
+    entity_category: config
+    min_value: 1
+    max_value: 10
+    step: 1
+    initial_value: 4
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_flow_setpoint_dhw_lph
+    name: "Flow Setpoint DHW"
+    icon: mdi:waves-arrow-right
+    unit_of_measurement: "L/h"
+    entity_category: config
+    min_value: 0
+    max_value: 1500
+    step: 10
+    initial_value: 1000
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_flow_min_lph
+    name: "DHW flow min"
+    icon: mdi:waves
+    unit_of_measurement: "L/h"
+    entity_category: config
+    min_value: 300
+    max_value: 1300
+    step: 10
+    initial_value: 750
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_flow_max_lph
+    name: "DHW flow max"
+    icon: mdi:waves
+    unit_of_measurement: "L/h"
+    entity_category: config
+    min_value: 600
+    max_value: 1800
+    step: 10
+    initial_value: 1800
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_min_rest_s
+    name: "DHW minimum rest"
+    icon: mdi:timer-sand
+    unit_of_measurement: "s"
+    entity_category: config
+    min_value: 0
+    max_value: 3600
+    step: 60
+    initial_value: 1200
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_hp_target_flow_c
+    name: "DHW HP target flow"
+    icon: mdi:thermometer
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 48
+    max_value: 60
+    step: 0.5
+    initial_value: 55
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_boost_target_c
+    name: "DHW boost target"
+    icon: mdi:heating-coil
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 55
+    max_value: 58
+    step: 0.5
+    initial_value: 56
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_boost_hp_assist_bottom_c
+    name: "DHW boost HP assist bottom threshold"
+    icon: mdi:thermometer-low
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 15
+    max_value: 45
+    step: 1
+    initial_value: 35
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_boost_hp_assist_stop_top_c
+    name: "DHW boost HP assist stop top"
+    icon: mdi:thermometer-high
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 45
+    max_value: 55
+    step: 0.5
+    initial_value: 52
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_max_boost_target_c
+    name: "DHW boost now target"
+    icon: mdi:rocket-launch
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 50
+    max_value: 65
+    step: 0.5
+    initial_value: 60
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_max_boost_hp_stop_top_c
+    name: "DHW boost now HP stop"
+    icon: mdi:rocket-launch-outline
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 45
+    max_value: 60
+    step: 0.5
+    initial_value: 55
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_legionella_target_c
+    name: "DHW legionella target"
+    icon: mdi:bacteria
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 60
+    max_value: 75
+    step: 0.5
+    initial_value: 68
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_legionella_hp_stop_top_c
+    name: "DHW legionella HP handover temp"
+    icon: mdi:bacteria-outline
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 40
+    max_value: 60
+    step: 0.5
+    initial_value: 53
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_legionella_hp_top_ceiling_c
+    name: "DHW legionella HP top ceiling"
+    icon: mdi:thermometer-alert
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 45
+    max_value: 60
+    step: 0.5
+    initial_value: 55
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_window_start_h
+    name: "DHW window start hour"
+    icon: mdi:clock-start
+    unit_of_measurement: "h"
+    entity_category: config
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 0
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_window_end_h
+    name: "DHW window end hour"
+    icon: mdi:clock-end
+    unit_of_measurement: "h"
+    entity_category: config
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 7
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_coil_map_t1_c
+    name: "DHW coil map T1 (4→3)"
+    icon: mdi:stairs-down
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 30
+    max_value: 52
+    step: 0.5
+    initial_value: 40
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_coil_map_t2_c
+    name: "DHW coil map T2 (3→2)"
+    icon: mdi:stairs-down
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 33
+    max_value: 53
+    step: 0.5
+    initial_value: 44
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_coil_map_t3_c
+    name: "DHW coil map T3 (2→1)"
+    icon: mdi:stairs-down
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 36
+    max_value: 54.5
+    step: 0.5
+    initial_value: 48
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_coil_map_hyst_c
+    name: "DHW coil map hysteresis"
+    icon: mdi:arrow-expand-vertical
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 0
+    max_value: 3
+    step: 0.1
+    initial_value: 0.5
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_single_hp_level_bump
+    name: "DHW single HP level bump"
+    icon: mdi:plus-box
+    entity_category: config
+    min_value: 0
+    max_value: 3
+    step: 1
+    initial_value: 0
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_softstart_step_min
+    name: "DHW soft start step time"
+    icon: mdi:stairs-up
+    unit_of_measurement: "min"
+    entity_category: config
+    min_value: 0
+    max_value: 15
+    step: 1
+    initial_value: 3
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_assist_max_level
+    name: "DHW assist max level"
+    icon: mdi:speedometer-medium
+    unit_of_measurement: "lvl"
+    entity_category: config
+    min_value: 1
+    max_value: 10
+    step: 1
+    initial_value: 3
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_assist_min_rise_k_min
+    name: "DHW assist min tank rise"
+    icon: mdi:trending-up
+    unit_of_measurement: "K/min"
+    entity_category: config
+    min_value: 0.02
+    max_value: 0.5
+    step: 0.01
+    initial_value: 0.1
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_assist_discharge_max_c
+    name: "DHW assist max discharge temp"
+    icon: mdi:thermometer-alert
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 70
+    max_value: 110
+    step: 1
+    initial_value: 90
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_assist_water_out_max_c
+    name: "DHW assist max water out"
+    icon: mdi:thermometer-water
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 45
+    max_value: 62
+    step: 0.5
+    initial_value: 57
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_assist_bottom_stop_c
+    name: "DHW assist tank bottom stop"
+    icon: mdi:thermometer-low
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 35
+    max_value: 55
+    step: 0.5
+    initial_value: 48
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_assist_water_release_c
+    name: "DHW assist water release temp"
+    icon: mdi:thermometer-water
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 35
+    max_value: 58
+    step: 0.5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    mode: box
+
+switch:
+  - platform: template
+    id: oq_dhw_lockout
+    name: "DHW lockout"
+    icon: mdi:lock
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: template
+    id: oq_dhw_boost_after_hp
+    name: "DHW boost after HP"
+    icon: mdi:heating-coil
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: oq_dhw_boost_hp_assist_enable
+    name: "DHW boost HP assist"
+    icon: mdi:heat-pump
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: template
+    id: oq_dhw_window_enable
+    name: "DHW window enable"
+    icon: mdi:clock-outline
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: template
+    id: oq_dhw_legionella_coil_circulation_enable
+    name: "DHW legionella coil circulation"
+    icon: mdi:sync
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: oq_dhw_coil_map_enable
+    name: "DHW coil-in level mapping"
+    icon: mdi:stairs
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: oq_dhw_single_hp_mode
+    name: "DHW single HP mode"
+    icon: mdi:numeric-1-box
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: template
+    id: oq_dhw_assist_enable
+    name: "DHW second HP assist"
+    icon: mdi:numeric-2-box
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  # Bewust niet bewaard over een herstart: een snelboost of een geforceerde
+  # legionella-run hoort niet vanzelf terug te komen.
+  - platform: template
+    id: oq_dhw_boost_now
+    name: "DHW boost now"
+    icon: mdi:rocket-launch
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+
+  - platform: template
+    id: oq_dhw_src_legionella_force
+    name: "DHW source legionella force"
+    icon: mdi:bacteria
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+
+button:
+  - platform: template
+    id: oq_dhw_clear_fault
+    name: "DHW clear fault"
+    icon: mdi:restore-alert
+    on_press:
+      - lambda: |-
+          oq_fe_dhw_runtime::runtime().clear_fault();
+
+binary_sensor:
+  - platform: template
+    id: oq_dhw_hp_request_active_sensor
+    name: "DHW HP request active"
+    icon: mdi:heat-pump
+
+  - platform: template
+    id: oq_dhw_block_cv_priority_sensor
+    name: "DHW block CV priority"
+    icon: mdi:radiator-off
+
+text_sensor:
+  - platform: template
+    id: oq_dhw_state_text
+    name: "DHW state"
+    icon: mdi:state-machine
+    update_interval: never
+
+  - platform: template
+    id: oq_dhw_fault_text
+    name: "DHW fault"
+    icon: mdi:alert-circle-outline
+    update_interval: never
+
+  - platform: template
+    id: oq_dhw_level_reason
+    name: "DHW level reason"
+    icon: mdi:information-outline
+    entity_category: diagnostic
+    update_interval: never
+
+  - platform: template
+    id: oq_dhw_legionella_last_run
+    name: "DHW legionella laatste run"
+    icon: mdi:calendar-check
+    update_interval: 60s
+    lambda: |-
+      const int64_t last = id(oq_dhw_legionella_last_done_epoch_s);
+      if (last <= 0) return {"Nooit"};
+      return {ESPTime::from_epoch_local((time_t) last).strftime("%Y-%m-%d %H:%M")};
+
+  - platform: template
+    id: oq_dhw_legionella_next_run
+    name: "DHW legionella volgende run"
+    icon: mdi:calendar-clock
+    update_interval: 60s
+    lambda: |-
+      const int64_t last = id(oq_dhw_legionella_last_done_epoch_s);
+      if (last <= 0) return {"Na 30 min uptime"};
+      const int64_t next = last + oq_fe_dhw_runtime::LEGIONELLA_INTERVAL_S;
+      return {ESPTime::from_epoch_local((time_t) next).strftime("%Y-%m-%d %H:%M")};
+
+sensor:
+  - platform: template
+    id: oq_dhw_target_flow_temp_sensor
+    name: "DHW target flow temp"
+    icon: mdi:thermometer
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    update_interval: 10s
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().target_flow_c();
+
+  - platform: template
+    id: oq_dhw_coil_mapped_level
+    name: "DHW coil mapped level"
+    icon: mdi:stairs
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().mapped_level();
+
+  - platform: template
+    id: oq_dhw_assist_level_sensor
+    name: "DHW second HP assist level"
+    icon: mdi:numeric-2-box
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().assist_level();
+
+interval:
+  - interval: 2s
+    startup_delay: 6s
+    then:
+      - lambda: |-
+          oq_fe_dhw_runtime::runtime().tick();

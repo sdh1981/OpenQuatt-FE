@@ -17,6 +17,9 @@
 #include "oq_supervisory_power_limiter_runtime.h"
 #include "oq_supervisory_safety_runtime.h"
 #include "oq_supervisory_state_logic.h"
+#if OQ_FE_TARGET
+#include "../fe/oq_fe_dhw_bridge.h"  // FE: DHW-vraag (CM10)
+#endif
 #if defined(OQ_TOPOLOGY_DUO)
 namespace oq_supervisory_state_runtime {
 
@@ -112,6 +115,9 @@ class Runtime {
     };
     auto cm_code_to_id = [](int cm) -> const char* {
       if (cm == 100) return "CM100";
+#if OQ_FE_TARGET
+      if (cm == oq_fe_dhw_bridge::CM_DHW) return "CM10";  // FE
+#endif
       if (cm == 98) return "CM98";
       if (cm == 5) return "CM5";
       if (cm == 4) return "CM4";
@@ -122,6 +128,9 @@ class Runtime {
     };
     auto cm_id_to_code = [](const std::string& cm) -> int {
       if (cm == "CM100") return 100;
+#if OQ_FE_TARGET
+      if (cm == "CM10") return oq_fe_dhw_bridge::CM_DHW;  // FE
+#endif
       if (cm == "CM98") return 98;
       if (cm == "CM5") return 5;
       if (cm == "CM4") return 4;
@@ -139,6 +148,9 @@ class Runtime {
       if (strcmp(cm_id, "CM3") == 0) return std::string("CM3 - Heating - Heat Pump + Boiler");
       if (strcmp(cm_id, "CM4") == 0) return std::string("CM4 - Heating - Boiler Fallback");
       if (strcmp(cm_id, "CM5") == 0) return std::string("CM5 - Cooling");
+#if OQ_FE_TARGET
+      if (strcmp(cm_id, "CM10") == 0) return std::string("CM10 - Hot water");  // FE
+#endif
       if (strcmp(cm_id, "CM98") == 0) return std::string("CM98 - Anti-Freeze Protection - Water Circulation");
       return std::string("Unknown");
     };
@@ -157,6 +169,12 @@ class Runtime {
                                  id(cooling_request_active).has_state() && id(cooling_request_active).state &&
                                  id(cooling_permitted_core).has_state() && id(cooling_permitted_core).state;
     const bool cooling_req = cooling_req_raw && openquatt_enabled;
+#if OQ_FE_TARGET
+    // FE: warm water vraagt CM10 en gaat voor koelen en verwarmen.
+    const bool dhw_req = oq_fe_dhw_bridge::state().mode_requested && openquatt_enabled;
+#else
+    constexpr bool dhw_req = false;
+#endif
     const bool power_house_active = (strategy_active_code == 3);
     const bool heating_curve_active = (strategy_active_code == 2);
 
@@ -328,7 +346,7 @@ class Runtime {
         oq_manual_hp::owns_control() && ((int)roundf(id(oq_manual_hp1_level).state) > 0 ||
                                          (int)roundf(id(oq_manual_hp2_level).state) > 0 || actuator_request_active);
     const bool heating_flow_req = heating_req || heating_preflow_req;
-    const bool thermal_req = heating_flow_req || cooling_req || manual_hp_thermal_req;
+    const bool thermal_req = heating_flow_req || cooling_req || manual_hp_thermal_req || dhw_req;
     const bool flow_guard_required =
         oq_supervisory_state::flow_guard_required(thermal_req, any_hp_compressor_active, actuator_request_active);
 
@@ -470,6 +488,7 @@ class Runtime {
                                : (next_after == 4)  ? "preflow hold for boiler fallback"
                                : (next_after == 5)  ? "pre/postflow hold for cooling"
                                : (next_after == 98) ? "pre/postflow hold for frost"
+                               : (next_after == 10) ? "preflow hold for hot water"  // FE
                                                     : "postflow hold for standby";
         ESP_LOGI("supervisory", "CM1 hold started: next_after=%d, heating_req=%d, cooling_req=%d", next_after,
                  (int)heating_req, (int)cooling_req);
@@ -566,6 +585,10 @@ class Runtime {
           base_target = 1;
         }
       }
+#if OQ_FE_TARGET
+      // FE: DHW gaat voor koelen en verwarmen; de flow-interlock houdt CM1.
+      base_target = oq_fe_dhw_bridge::base_target(base_target, dhw_req, id(oq_lowflow_fault_active) || flow_low);
+#endif
 
       int desired_local = 0;
       if (override_mode != 0) {
@@ -612,7 +635,9 @@ class Runtime {
 
             // 2) If we're in CM1 and timer just expired -> advance to next_after
           } else if (cm1_timer_expired && strcmp(cur_cm, "CM1") == 0) {
-            if (heating_req && base_target == 4 && fallback_decision.cm4_allowed) {
+            if (dhw_req && base_target == 10) {
+              desired_local = 10;  // FE: CM1 afgelopen -> warm water
+            } else if (heating_req && base_target == 4 && fallback_decision.cm4_allowed) {
               desired_local = 4;
             } else if (heating_req && no_hp_available_confirmed && base_target == 1) {
               desired_local = 1;
@@ -657,7 +682,8 @@ class Runtime {
               desired_local = (base_target == 5) ? 5 : ((base_target == 2) ? 2 : (base_target == 98 ? 98 : 0));
             }
 
-            cm_transition_reason = (desired_local == 2)    ? "CM1 hold expired -> heating"
+            cm_transition_reason = (desired_local == 10)   ? "CM1 hold expired -> hot water"
+                                   : (desired_local == 2)  ? "CM1 hold expired -> heating"
                                    : (desired_local == 4)  ? "CM1 hold expired -> boiler fallback"
                                    : (desired_local == 5)  ? "CM1 hold expired -> cooling"
                                    : (desired_local == 98) ? "CM1 hold expired -> frost"
@@ -679,7 +705,24 @@ class Runtime {
               id(oq_cm1_next_after) = 0;
             }
 
-            if (cooling_req) {
+            if (dhw_req) {
+              // FE: warm water, net als koelen via een CM1-voorloop.
+              if (base_target == 10) {
+                if (current_cm_code == 10) {
+                  desired_local = 10;
+                  cm_transition_reason = "hot water already active";
+                } else {
+                  start_cm1(10);
+                  desired_local = 1;
+                  cm_transition_reason = "hot water request waiting for CM1 hold";
+                }
+              } else {
+                desired_local = 1;
+                cm1_event_reason = id(oq_lowflow_fault_active) ? openquatt_decision_log::REASON_FLOW_TOO_LOW
+                                                               : openquatt_decision_log::REASON_FLOW_PREFLOW;
+                cm_transition_reason = "hot water request held by flow interlock";
+              }
+            } else if (cooling_req) {
               if (base_target == 5) {
                 if (strcmp(cur_cm, "CM5") == 0) {
                   desired_local = 5;
@@ -722,7 +765,7 @@ class Runtime {
               }
             } else {
               if (strcmp(cur_cm, "CM2") == 0 || strcmp(cur_cm, "CM3") == 0 || strcmp(cur_cm, "CM4") == 0 ||
-                  strcmp(cur_cm, "CM5") == 0) {
+                  strcmp(cur_cm, "CM5") == 0 || current_cm_code == 10 /* FE: CM10 */) {
                 start_cm1(0);  // postflow to CM0
                 desired_local = 1;
                 cm_transition_reason = "postflow before standby";

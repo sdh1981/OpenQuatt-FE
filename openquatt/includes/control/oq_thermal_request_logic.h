@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <string>
 
+#if OQ_FE_TARGET
+#include "../fe/oq_fe_dhw_bridge.h"  // FE: DHW-strategie (CM10)
+#endif
+
 namespace oq_request {
 
 enum StrategyCode : int {
@@ -136,6 +140,12 @@ inline int minimum_runtime_seconds(bool has_state, float value, int floor_s) {
 }
 
 inline ModeContext resolve_mode_context(int control_mode_code, int heat_mode_code) {
+#if OQ_FE_TARGET
+  // FE: warm water. HP toegestaan in verwarmstand, niveaus uit de DHW-regeling.
+  if (control_mode_code == oq_fe_dhw_bridge::CM_DHW) {
+    return {false, false, false, true, heat_mode_code, 2, oq_fe_dhw_bridge::STRATEGY_DHW};
+  }
+#endif
   const bool cooling = control_mode_code == 5;
   const bool curve = heat_mode_code == 1 || cooling;
   return {
@@ -150,6 +160,12 @@ inline ModeContext resolve_mode_context(int control_mode_code, int heat_mode_cod
 }
 
 inline StrategyRequest select_strategy_request(const StrategyRequestInput& input) {
+#if OQ_FE_TARGET
+  if (input.mode.strategy_code == oq_fe_dhw_bridge::STRATEGY_DHW) {
+    const auto& dhw = oq_fe_dhw_bridge::state();
+    return {dhw.hp1_level, input.duo ? dhw.hp2_level : 0, dhw.owner_hp, dhw.reason};
+  }
+#endif
   if (input.mode.cooling) {
     const int owner = input.cooling_owner;
     const char* reason = "cooling_idle";
@@ -198,6 +214,9 @@ inline int request_owner_from_topology_code(int topology_code) {
 inline int sanitize_request_mode_code(int mode_code) { return (mode_code >= 0 && mode_code <= 2) ? mode_code : 0; }
 
 inline int sanitize_request_strategy_code(int strategy_code) {
+#if OQ_FE_TARGET
+  if (strategy_code == oq_fe_dhw_bridge::STRATEGY_DHW) return strategy_code;  // FE
+#endif
   return (strategy_code >= 0 && strategy_code <= 4) ? strategy_code : 0;
 }
 
