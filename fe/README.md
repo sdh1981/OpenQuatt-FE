@@ -70,7 +70,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 2 | DHW-logica en host-tests overzetten (`oq_dhw_controller_logic.h`), nog zonder aansturing | PR #2 |
 | 3 | I/O: twee DS18B20 op T (85,0 °C-opstartwaarde gefilterd), klep op R2, terugmelding op GPIO44, element op R1, bankproef-schakelaars | PR #3 |
 | 4a | DHW stuurt de warmtepompen: CM10, eigen strategie en flow-setpoint, coil-in-mapping op de HP-uitlaat, zachte aanloop, single-HP met assist, snelboost met bewaking, legionella | PR #5 |
-| 4c | Tarief/PV, adaptief leren, tapdetectie, element-only (CM11) | gepland |
+| 4c | Tapdetectie, standby-loss-lerer, element-only (CM11); tarief/PV en adaptief leren vervallen (besloten 09-10). Voorstel: `fe/fase4c-voorstel.md` | voorstel |
 | 5 | Web-app en HA-dashboard | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
