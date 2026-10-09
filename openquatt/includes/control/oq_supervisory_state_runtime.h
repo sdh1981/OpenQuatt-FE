@@ -732,19 +732,21 @@ class Runtime {
                                                                : openquatt_decision_log::REASON_FLOW_PREFLOW;
                 cm_transition_reason = "hot water request held by flow interlock";
               }
-            } else if (element_only_req && base_target == 11) {
+#if OQ_FE_TARGET
+            } else if (element_only_req && base_target == oq_fe_dhw_bridge::CM_ELEMENT_ONLY) {
               // FE: element-only; vanuit een actieve modus eerst de CM1-naloop.
-              if (current_cm_code == 11) {
-                desired_local = 11;
+              if (current_cm_code == oq_fe_dhw_bridge::CM_ELEMENT_ONLY) {
+                desired_local = oq_fe_dhw_bridge::CM_ELEMENT_ONLY;
                 cm_transition_reason = "element only already active";
               } else if (oq_fe_dhw_bridge::needs_postflow_before_element_only(current_cm_code)) {
-                start_cm1(11);
+                start_cm1(oq_fe_dhw_bridge::CM_ELEMENT_ONLY);
                 desired_local = 1;
                 cm_transition_reason = "element only waiting for CM1 postflow";
               } else {
-                desired_local = 11;
+                desired_local = oq_fe_dhw_bridge::CM_ELEMENT_ONLY;
                 cm_transition_reason = "element only requested";
               }
+#endif
             } else if (cooling_req) {
               if (base_target == 5) {
                 if (strcmp(cur_cm, "CM5") == 0) {
