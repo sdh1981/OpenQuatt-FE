@@ -2,7 +2,8 @@
 //
 // Tikt oq_dhw::Controller, voedt oq_fe_dhw_bridge (CM10, niveaus, flow-setpoint) en
 // oq_fe_io_runtime (klep en element). Port van de tick in oq_boiler_control.yaml van
-// de LilyGO-build (v0.65.0), zonder de tarief-, PV- en leerfuncties (fase 4c).
+// de LilyGO-build (v0.65.0). Tarief/PV-sturing en adaptief leren vervallen; tapdetectie,
+// de standby-loss-lerer, de ETA's en element-only (CM11) zijn er wel.
 #pragma once
 
 #include <algorithm>
@@ -10,6 +11,7 @@
 #include "oq_dhw_controller_logic.h"
 #include "oq_fe_dhw_bridge.h"
 #include "oq_fe_dhw_levels_logic.h"
+#include "oq_fe_dhw_tank_logic.h"
 #include "oq_fe_io_runtime.h"
 
 // De map-include neemt deze header in elk target op; alleen het FE-target heeft
@@ -28,6 +30,28 @@ class Runtime {
 
   bool idle() const { return idle_; }
 
+  void reset_learning() {
+    id(oq_dhw_ua_tank_wpk) = 0.0f;
+    id(oq_dhw_ua_tank_sample_count) = 0;
+    learner_ = oq_fe_dhw_tank::LearnerState{};
+    ESP_LOGI("fe.dhw", "DHW standby-loss learning reset");
+  }
+
+  // Ruimtetemperatuur rond de tank uit Home Assistant (on_value).
+  void note_room_temp(float value_c) {
+    room_ha_c_ = value_c;
+    room_ha_ms_ = (uint32_t)millis();
+  }
+
+  // Ruimtetemperatuur voor de lerer en de ETA's: Home Assistant zolang die vers
+  // is (< 30 min), anders het ingestelde getal.
+  float ambient_c() const {
+    const bool use_ha = id(oq_dhw_room_temp_source).current_option() == "Home Assistant";
+    const bool fresh = room_ha_ms_ != 0 && (uint32_t)((uint32_t)millis() - room_ha_ms_) < 1800000UL;
+    if (use_ha && fresh && !isnan(room_ha_c_)) return room_ha_c_;
+    return id(oq_dhw_room_temp_c).state;
+  }
+
   void tick() {
     const uint32_t now_ms = (uint32_t)millis();
     const uint32_t dt_ms = last_tick_ms_ == 0 ? 0 : std::min<uint32_t>(now_ms - last_tick_ms_, 60000U);
@@ -45,22 +69,40 @@ class Runtime {
       return;
     }
 
+    const bool element_only = id(oq_dhw_element_only_enable).state;
     const oq_dhw::Config cfg = config_();
     oq_dhw::Inputs in = inputs_(now_ms);
+    if (element_only) {
+      // Element-only: geen nieuwe cycli en geen snelboost. Legionella mag wel
+      // (de start-inhibit geldt niet voor legionella), en een lopende cyclus
+      // maakt eerst af.
+      in.start_inhibit = true;
+      in.max_boost_request = false;
+    }
     const oq_dhw::Outputs out = controller_.tick(in, cfg);
     last_out_ = out;
     idle_ = out.state == oq_dhw::State::IDLE_CV && out.fault == oq_dhw::Fault::NONE;
 
+    // Element-only-thermostaat op tank bottom, alleen in CM11 zelf.
+    const bool in_cm11 = id(oq_control_mode_code) == oq_fe_dhw_bridge::CM_ELEMENT_ONLY;
+    eo_on_ = in_cm11 && oq_fe_dhw_tank::element_only_on(eo_on_, !was_cm11_, id(fe_dhw_tank_bottom).state,
+                                                        id(oq_dhw_element_only_target_c).state,
+                                                        id(oq_dhw_element_only_off_delta_c).state);
+    was_cm11_ = in_cm11;
+
     // Klep en element. Het element mag alleen op een bevestigde DHW-stand,
-    // behalve in de element-only-fase van legionella (klep bewust op CV).
+    // behalve in de element-only-fase van legionella (klep bewust op CV). In
+    // CM11 vraagt ook de thermostaat om het element; de klep blijft dan op CV.
     const bool valve_dhw_confirmed = !in.valve_feedback_valid || !in.valve_feedback_cv;
     const bool legionella_element_only = out.element_on && !out.block_cv_priority;
-    const bool element = out.element_on && (valve_dhw_confirmed || legionella_element_only);
-    oq_fe_io_runtime::runtime().set_dhw_requests(out.valve_to_boiler, element);
-    oq_fe_io_runtime::runtime().set_tests_allowed(idle_);
+    const bool fsm_element = out.element_on && (valve_dhw_confirmed || legionella_element_only);
+    oq_fe_io_runtime::runtime().set_dhw_requests(out.valve_to_boiler, fsm_element || eo_on_);
+    oq_fe_io_runtime::runtime().set_tests_allowed(idle_ && !element_only);
 
     update_levels_(now_ms, dt_ms, out);
-    track_legionella_(out);
+    oq_fe_dhw_bridge::state().element_only_requested = element_only;
+    track_legionella_(out, now_ms);
+    update_tank_model_(now_ms, out, fsm_element || eo_on_);
     publish_();
   }
 
@@ -164,8 +206,18 @@ class Runtime {
     legionella_seeded_ = true;
   }
 
-  void track_legionella_(const oq_dhw::Outputs& out) {
+  void track_legionella_(const oq_dhw::Outputs& out, uint32_t now_ms) {
     const int state = (int)out.state;
+    if (out.state == oq_dhw::State::LEGIONELLA) {
+      // Zelfde meetpunt als de hold in de toestandsmachine: top, anders bottom.
+      const float top = id(fe_dhw_tank_top).state;
+      const float check = !isnan(top) ? top : id(fe_dhw_tank_bottom).state;
+      if (hold_start_ms_ == 0 && !isnan(check) && check >= id(oq_dhw_legionella_target_c).state) {
+        hold_start_ms_ = now_ms == 0 ? 1 : now_ms;
+      }
+    } else {
+      hold_start_ms_ = 0;
+    }
     const bool completed = prev_state_ == (int)oq_dhw::State::LEGIONELLA && state == (int)oq_dhw::State::IDLE_CV &&
                            out.fault == oq_dhw::Fault::NONE;
     if (completed) {
@@ -283,6 +335,70 @@ class Runtime {
     soft_start_ = oq_fe_dhw_levels::SoftStart{};
     lead_ = 0;
     idle_ = false;
+    eo_on_ = false;
+    was_cm11_ = false;
+  }
+
+  void update_tank_model_(uint32_t now_ms, const oq_dhw::Outputs& out, bool element_on) {
+    namespace tk = oq_fe_dhw_tank;
+    if (!tank_loaded_) {
+      tap_.taps_today = id(oq_dhw_taps_today);
+      tap_.last_tap_wh = id(oq_dhw_last_tap_wh);
+      tank_loaded_ = true;
+    }
+    const auto now = id(oq_time).now();
+    if (now.is_valid()) {
+      if (last_day_ >= 0 && now.day_of_year != last_day_) tap_.taps_today = 0;  // middernacht
+      last_day_ = now.day_of_year;
+    }
+    const float top = id(fe_dhw_tank_top).state;
+    const float volume = id(oq_dhw_tank_volume_l).state;
+    const bool heating = out.hp_dhw_request || element_on;
+    tk::TapConfig tap_cfg;
+    tap_cfg.threshold_k_min = id(oq_dhw_tap_rate_threshold).state;
+    tap_cfg.volume_l = volume;
+    tk::update_tap(tap_, id(oq_dhw_tap_detect_enable).state, heating, top, now_ms, tap_cfg);
+    id(oq_dhw_taps_today) = tap_.taps_today;
+    id(oq_dhw_last_tap_wh) = tap_.last_tap_wh;
+
+    const float ambient = this->ambient_c();
+    tk::LearnerConfig learn_cfg;
+    learn_cfg.volume_l = volume;
+    learn_cfg.ambient_c = ambient;
+    float ua = id(oq_dhw_ua_tank_wpk);
+    int samples = id(oq_dhw_ua_tank_sample_count);
+    const bool rest = out.state == oq_dhw::State::IDLE_CV && !element_on;
+    if (tk::update_learner(learner_, ua, samples, rest, top, now_ms, tap_, learn_cfg)) {
+      id(oq_dhw_ua_tank_wpk) = ua;
+      id(oq_dhw_ua_tank_sample_count) = samples;
+      ESP_LOGI("fe.dhw", "Standby loss sample: UA %.2f W/K (%d samples)", ua, samples);
+    }
+
+    float hp_power = 0.0f;
+    const float p1 = id(hp1_heat_power).state;
+    if (!isnan(p1)) hp_power += p1;
+#if OQ_TOPOLOGY_DUO
+    const float p2 = id(hp2_heat_power).state;
+    if (!isnan(p2)) hp_power += p2;
+#endif
+    eta_ready_min_ = tk::time_to_ready_min(heating, top, id(oq_dhw_hp_stop_top_c).state, volume, hp_power, element_on,
+                                           id(oq_dhw_ua_tank_wpk), ambient);
+    if (out.state == oq_dhw::State::LEGIONELLA) {
+      tk::LegionellaEtaInputs li;
+      li.top_c = top;
+      li.target_c = id(oq_dhw_legionella_target_c).state;
+      li.hp_top_ceiling_c = id(oq_dhw_legionella_hp_top_ceiling_c).state;
+      li.volume_l = volume;
+      li.hp_phase_active = out.hp_dhw_request;
+      li.hp_power_w = hp_power;
+      li.hold_started = hold_start_ms_ != 0;
+      li.hold_elapsed_ms = hold_start_ms_ != 0 ? (uint32_t)(now_ms - hold_start_ms_) : 0;
+      li.ua = id(oq_dhw_ua_tank_wpk);
+      li.ambient_c = ambient;
+      eta_legionella_min_ = tk::legionella_eta_min(li);
+    } else {
+      eta_legionella_min_ = NAN;
+    }
   }
 
   void publish_() {
@@ -323,6 +439,18 @@ class Runtime {
   oq_fe_dhw_levels::AssistState assist_{};
   oq_fe_dhw_levels::RiseTracker rise_{};
 
+  bool eo_on_ = false;
+  bool was_cm11_ = false;
+  uint32_t hold_start_ms_ = 0;
+  oq_fe_dhw_tank::TapState tap_{};
+  oq_fe_dhw_tank::LearnerState learner_{};
+  bool tank_loaded_ = false;
+  int last_day_ = -1;
+  float room_ha_c_ = NAN;
+  uint32_t room_ha_ms_ = 0;
+  float eta_ready_min_ = NAN;
+  float eta_legionella_min_ = NAN;
+
   const char* state_text_ = nullptr;
   const char* fault_text_ = nullptr;
   const char* level_reason_ = nullptr;
@@ -333,6 +461,11 @@ class Runtime {
   int assist_level() const { return assist_.level; }
   int lead() const { return lead_; }
   float target_flow_c() const { return last_out_.target_flow_temp_c; }
+  bool element_only_on() const { return eo_on_; }
+  bool tap_active() const { return tap_.active; }
+  float tap_rate_k_min() const { return tap_.rate_k_min; }
+  float eta_ready_min() const { return eta_ready_min_; }
+  float eta_legionella_min() const { return eta_legionella_min_; }
 };
 
 inline Runtime& runtime() {

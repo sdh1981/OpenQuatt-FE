@@ -1,0 +1,252 @@
+# ==============================================================================
+# OpenQuatt FE - tankmodel en element-only (fase 4c)
+# ==============================================================================
+#
+# Tapdetectie, de standby-loss-lerer (UA van de tank), de ETA-sensoren en
+# element-only (CM11). De logica zit in oq_fe_dhw_tank_logic.h en wordt getikt
+# door oq_fe_dhw_runtime (fe_dhw.yaml). Namen komen uit de LilyGO-build.
+#
+# Ruimtetemperatuur rond de tank: instelbaar, of uit Home Assistant. Een
+# MQTT-bron loopt via Home Assistant; upstream's MQTT-ingress heeft een vaste
+# lijst onderwerpen.
+# ==============================================================================
+
+substitutions:
+  ha_dhw_room_temp_entity_id: "sensor.openquatt_ext_dhw_room_temperature"
+
+globals:
+  - id: oq_dhw_ua_tank_wpk
+    type: float
+    restore_value: true
+    initial_value: '0.0'
+
+  - id: oq_dhw_ua_tank_sample_count
+    type: int
+    restore_value: true
+    initial_value: '0'
+
+  - id: oq_dhw_taps_today
+    type: int
+    restore_value: true
+    initial_value: '0'
+
+  - id: oq_dhw_last_tap_wh
+    type: float
+    restore_value: true
+    initial_value: 'NAN'
+
+number:
+  - platform: template
+    id: oq_dhw_tap_rate_threshold
+    name: "DHW tapdetectie drempel"
+    icon: mdi:water-minus
+    unit_of_measurement: "K/min"
+    entity_category: config
+    min_value: 0.1
+    max_value: 3.0
+    step: 0.1
+    initial_value: 0.4
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_tank_volume_l
+    name: "DHW tank volume"
+    icon: mdi:water-boiler
+    unit_of_measurement: "L"
+    entity_category: config
+    min_value: 50
+    max_value: 500
+    step: 10
+    initial_value: 220
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_element_only_target_c
+    name: "DHW Element Only Target"
+    icon: mdi:thermometer
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 35
+    max_value: 65
+    step: 0.5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_element_only_off_delta_c
+    name: "DHW Element Only Off Delta"
+    icon: mdi:arrow-expand-vertical
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 1
+    max_value: 10
+    step: 0.5
+    initial_value: 5
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_room_temp_c
+    name: "DHW ruimtetemperatuur"
+    icon: mdi:home-thermometer
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 0
+    max_value: 35
+    step: 0.5
+    initial_value: 20
+    optimistic: true
+    restore_value: true
+    mode: box
+
+switch:
+  - platform: template
+    id: oq_dhw_tap_detect_enable
+    name: "DHW tapdetectie"
+    icon: mdi:water-pump
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: oq_dhw_element_only_enable
+    name: "DHW Element Only Heating"
+    icon: mdi:heating-coil
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
+select:
+  - platform: template
+    id: oq_dhw_room_temp_source
+    name: "DHW ruimtetemperatuur bron"
+    icon: mdi:source-branch
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    options:
+      - Vast
+      - Home Assistant
+    initial_option: Vast
+
+button:
+  - platform: template
+    id: oq_dhw_reset_standby_loss
+    name: "DHW reset standby-loss learning"
+    icon: mdi:restore
+    entity_category: config
+    on_press:
+      - lambda: |-
+          oq_fe_dhw_runtime::runtime().reset_learning();
+
+binary_sensor:
+  - platform: template
+    id: oq_dhw_tap_active_sensor
+    name: "DHW tapping actief"
+    icon: mdi:water-pump
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().tap_active();
+
+sensor:
+  - platform: homeassistant
+    id: fe_dhw_room_temp_ha
+    name: "HA - DHW Room Temperature"
+    entity_id: ${ha_dhw_room_temp_entity_id}
+    internal: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    on_value:
+      - lambda: |-
+          oq_fe_dhw_runtime::runtime().note_room_temp(x);
+
+  - platform: template
+    id: oq_dhw_room_temp_active
+    name: "DHW ruimtetemperatuur actief"
+    icon: mdi:home-thermometer-outline
+    unit_of_measurement: "°C"
+    device_class: temperature
+    entity_category: diagnostic
+    accuracy_decimals: 1
+    update_interval: 60s
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().ambient_c();
+
+  - platform: template
+    id: oq_dhw_ua_tank_sensor
+    name: "DHW tank standby loss"
+    icon: mdi:thermometer-minus
+    unit_of_measurement: "W/K"
+    state_class: measurement
+    accuracy_decimals: 2
+    update_interval: 60s
+    lambda: |-
+      const float ua = id(oq_dhw_ua_tank_wpk);
+      return ua > 0.0f ? ua : NAN;
+
+  - platform: template
+    id: oq_dhw_ua_tank_samples_sensor
+    name: "DHW UA samples"
+    icon: mdi:counter
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: 60s
+    lambda: |-
+      return (float) id(oq_dhw_ua_tank_sample_count);
+
+  - platform: template
+    id: oq_dhw_taps_today_sensor
+    name: "DHW tappingen vandaag"
+    icon: mdi:counter
+    accuracy_decimals: 0
+    update_interval: 60s
+    lambda: |-
+      return (float) id(oq_dhw_taps_today);
+
+  - platform: template
+    id: oq_dhw_last_tap_wh_sensor
+    name: "DHW laatste tapping energie"
+    icon: mdi:water-thermometer
+    unit_of_measurement: "Wh"
+    accuracy_decimals: 0
+    update_interval: 60s
+    lambda: |-
+      return id(oq_dhw_last_tap_wh);
+
+  - platform: template
+    id: oq_dhw_tap_rate_sensor
+    name: "DHW tanktop daalsnelheid"
+    icon: mdi:trending-down
+    unit_of_measurement: "K/min"
+    entity_category: diagnostic
+    accuracy_decimals: 2
+    update_interval: 60s
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().tap_rate_k_min();
+
+  - platform: template
+    id: oq_dhw_time_to_ready_sensor
+    name: "DHW estimated time to ready"
+    icon: mdi:timer-sand
+    unit_of_measurement: "min"
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 30s
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().eta_ready_min();
+
+  - platform: template
+    id: oq_dhw_legionella_eta_sensor
+    name: "DHW legionella ETA"
+    icon: mdi:timer-sand
+    unit_of_measurement: "min"
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 30s
+    lambda: |-
+      return oq_fe_dhw_runtime::runtime().eta_legionella_min();

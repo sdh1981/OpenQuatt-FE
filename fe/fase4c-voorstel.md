@@ -102,11 +102,21 @@ Met een schakelaar verwarmt alleen het 3 kW-element de tank. De warmtepompen sta
 
 ---
 
-## 5. Beslispunten
+## 5. Beslissingen (2026-10-09)
 
-1. **ETA-sensoren:** ook "DHW estimated time to ready" en "DHW legionella ETA" bouwen? Dat geeft de standby-loss-lerer zijn doel.
-2. **Klep in CM11:** naar CV (onbekrachtigd, mijn voorstel) of in de laatste stand laten (zoals de LilyGO-build)?
-3. **Legionella tijdens CM11:** wel laten starten, zoals in het voorstel (wijkt af van de LilyGO-build)?
-4. **Ruimtetemperatuur voor de lerer:** vast 20 °C zoals in de LilyGO-build, of een instelbaar getal (de tank staat bijvoorbeeld in een koude berging)?
+1. **ETA-sensoren:** ja, "DHW estimated time to ready" en "DHW legionella ETA" worden gebouwd.
+2. **Klep en pompen in CM11:** klep naar CV (onbekrachtigd) en de circulatiepompen uit.
+3. **Legionella tijdens CM11:** ja, de run start ook tijdens element-only.
+4. **Ruimtetemperatuur voor de lerer:** instelbaar ("DHW ruimtetemperatuur", 20 °C) of uit Home Assistant via "DHW ruimtetemperatuur bron".
+   - De HA-entiteit is een substitutie: `ha_dhw_room_temp_entity_id`.
+   - Is de HA-waarde ouder dan 30 min, dan valt de lerer terug op het ingestelde getal.
+   - MQTT loopt via Home Assistant: upstream's MQTT-ingress heeft een vaste lijst onderwerpen, en een eigen onderwerp vraagt een wijziging in die component.
 
-Na akkoord bouw ik 4c in één PR, als versie `v0.53.0-fe.3`.
+### Uitwerkingen tijdens de bouw
+
+- **Pompen in CM11.** Upstream laat de pompen in elke modus behalve CM0 en CM100 draaien; dat regelt de supervisory. CM11 telt daar nu als rusttoestand, net als CM0. Daarmee geldt ook de sticky-pomp-bescherming: na een lange rust draait de pomp kort, zodat hij niet vastzit.
+- **Vorst gaat voor element-only.** Vorstbeveiliging heeft circulatie nodig, element-only zet de pomp uit.
+- **Een lopende DHW-cyclus maakt eerst af.** Gaat element-only aan, dan blokkeert de start-inhibit alleen nieuwe cycli.
+- **Het element kan tijdens CM11 van twee kanten komen.** Het staat aan als de CM11-thermostaat erom vraagt, maar ook als de DHW-regeling erom vraagt. Zo breekt de element-fase van legionella niet af wanneer de regeling tussendoor in CM11 terechtkomt.
+
+Gebouwd in `feat/fe-dhw-4c` als `v0.53.0-fe.3`.

@@ -81,8 +81,8 @@ class SupervisoryStateRuntimeContractTest(unittest.TestCase):
         # Include the bounded Modbus reader added for first-start water samples.
         # Duo single-HP cold start (#705) added per-HP availability wiring.
         total = sum(len(source.splitlines()) for source in (YAML, LOGIC, RUNTIME, PROBE))
-        # FE: +43 regels voor de CM10-haken (achter OQ_FE_TARGET); upstream-budget 2313.
-        self.assertLessEqual(total, 2313 + 43)  # Three explicit runtime-header dependencies.
+        # FE: +68 regels voor de CM10/CM11-haken; upstream-budget 2313.
+        self.assertLessEqual(total, 2313 + 68)  # Three explicit runtime-header dependencies.
 
     def test_cold_start_follows_available_heat_pumps(self) -> None:
         # Regression for #705: Duo cold start required both ODU outlet samples
