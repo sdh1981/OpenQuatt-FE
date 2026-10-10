@@ -14,9 +14,9 @@ external_components:
     components: [opentherm]
 
 esphome:
-  includes:
-    - ../../openquatt/includes/boiler/oq_boiler_transport_logic.h
-    - ../../openquatt/includes/boiler/oq_otb_connection_state.h
+  # FE: losse header-includes weggehaald; de map-include (oq_cpp_headers_dir)
+  # neemt ze al op. Een tweede, platte kopie in src/ maakte de compile afhankelijk
+  # van de mtime-seconde van het kopiëren (#pragma once).
   on_boot:
     priority: -100
     then:
