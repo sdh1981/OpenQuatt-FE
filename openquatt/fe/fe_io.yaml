@@ -23,8 +23,11 @@
 substitutions:
   # Adressen invullen na de eerste start: de log van one_wire toont ze.
   # Een onbekend adres geeft NAN, en zonder geldige tank top blijft DHW uit.
-  fe_dallas_tank_top_address: "0x0000000000000000"
-  fe_dallas_tank_bottom_address: "0x0000000000000001"
+  # Gevonden op de bank (11-10-2026) en willekeurig toegewezen; welke fysieke
+  # sensor welke is, blijkt door er één met de hand op te warmen. Label de kabel
+  # daarna, zodat top bovenin de tank komt.
+  fe_dallas_tank_top_address: "0x5000000048509928"
+  fe_dallas_tank_bottom_address: "0x6700000022860328"
   fe_valve_feedback_pin: "GPIO44"
   fe_valve_test_max_s: "300"
   fe_element_test_max_s: "120"
