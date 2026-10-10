@@ -160,6 +160,18 @@ text_sensor:
     entity_category: diagnostic
     update_interval: never
 
+  # Adressen voor fe_dallas_tank_top_address / fe_dallas_tank_bottom_address.
+  # De bus zoekt alleen bij het opstarten; na het aansluiten van een sensor
+  # dus opnieuw starten.
+  - platform: template
+    id: fe_onewire_addresses
+    name: "DHW 1-Wire adressen"
+    icon: mdi:identifier
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      return oq_fe_io_runtime::Runtime::onewire_addresses();
+
 interval:
   - interval: 1s
     startup_delay: 5s

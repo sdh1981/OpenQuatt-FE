@@ -97,7 +97,8 @@ class Runtime {
     const bool legionella_element_only = out.element_on && !out.block_cv_priority;
     const bool fsm_element = out.element_on && (valve_dhw_confirmed || legionella_element_only);
     oq_fe_io_runtime::runtime().set_dhw_requests(out.valve_to_boiler, fsm_element || eo_on_);
-    oq_fe_io_runtime::runtime().set_tests_allowed(idle_ && !element_only);
+    const bool at_rest = out.state == oq_dhw::State::IDLE_CV || out.state == oq_dhw::State::FAULT;
+    oq_fe_io_runtime::runtime().set_tests_allowed(oq_fe_io::bench_tests_allowed(at_rest, element_only));
 
     update_levels_(now_ms, dt_ms, out);
     oq_fe_dhw_bridge::state().element_only_requested = element_only;
