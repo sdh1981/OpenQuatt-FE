@@ -2,11 +2,14 @@
 # OpenQuatt FE - I/O voor de DHW-boiler op de Heatpump Controller Q
 # ==============================================================================
 #
-# Wat dit package doet (fase 3, nog zonder DHW-regeling):
-#   - R1 en R2 krijgen één eigenaar: upstream schrijft via een template-output
-#     naar oq_fe_io_runtime, die per relais bepaalt wat er op de pin komt.
-#       R1: bijverwarmer aangesloten -> upstream ketel; anders DHW-element.
-#       R2: "R2 is DHW valve" aan -> 3-wegklep; anders upstream hulprelais.
+# Wat dit package doet:
+#   - FE is de enige eigenaar van beide relais (Full Electric: geen CV-ketel,
+#     geen hulprelais):
+#       R1 (COM/NO): 3-wegklep, bekrachtigd = DHW-stand.
+#       R2 (contactor op NO): 3 kW-element.
+#     Upstream schrijft zijn ketel- en hulprelaisvraag naar een template-output
+#     met de oude id; oq_fe_io_runtime negeert die. "Auxiliary heat source
+#     connected" staat altijd uit, zodat upstream de ketel volledig afschakelt.
 #   - Tank top en tank bottom als DS18B20 op de bestaande T-bus (vast adres),
 #     met de 85,0 C-opstartwaarde weggefilterd.
 #   - Klep-terugmelding op GPIO44 (Tweakers-connector), contact naar GND.
@@ -117,15 +120,9 @@ binary_sensor:
     device_class: heat
 
 switch:
-  - platform: template
-    id: fe_r2_dhw_valve
-    name: "R2 is DHW valve"
-    icon: mdi:valve
-    entity_category: config
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    on_turn_off:
-      - switch.turn_off: fe_test_dhw_valve
+  # Full Electric: geen CV-ketel. Vanaf de opstart uit; de runtime houdt hem uit.
+  - id: !extend oq_aux_heat_source_present
+    restore_mode: ALWAYS_OFF
 
   - platform: template
     id: fe_test_dhw_valve

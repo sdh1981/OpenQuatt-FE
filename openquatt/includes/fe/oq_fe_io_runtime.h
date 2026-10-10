@@ -16,15 +16,14 @@ struct TickConfig {
 
 class Runtime {
  public:
-  // Upstream schrijft R1 en R2 via de template-outputs in fe_io.yaml.
+  // Upstream schrijft zijn ketel- en hulprelaisvraag naar de template-outputs in
+  // fe_io.yaml. Full Electric heeft geen ketel en geen hulprelais: alleen loggen.
   void set_boiler_request(bool on) {
-    boiler_request_ = on;
-    apply_();
+    if (on) ESP_LOGD("fe.io", "Upstream boiler request ignored (Full Electric)");
   }
 
   void set_aux_relay_request(bool on) {
-    aux_relay_request_ = on;
-    apply_();
+    if (on) ESP_LOGD("fe.io", "Upstream aux relay request ignored (Full Electric)");
   }
 
   // Fase 4: de DHW-regeling meldt hier zijn klep- en elementvraag.
@@ -39,16 +38,19 @@ class Runtime {
 
   void tick(const TickConfig& cfg) {
     const uint32_t now_ms = (uint32_t)millis();
-    const bool source_present = id(oq_aux_heat_source_present).state;
+    // Full Electric: de CV-ketel staat altijd uit. Upstream schakelt dan zelf
+    // ketel-assist, ketel-terugval en OpenTherm naar de ketel af.
+    if (id(oq_aux_heat_source_present).state) {
+      ESP_LOGW("fe.io", "Auxiliary heat source is not available on Full Electric; switching it off");
+      id(oq_aux_heat_source_present).turn_off();
+    }
 
     const auto valve =
-        oq_fe_io::update_test(valve_test_, id(fe_test_dhw_valve).state, tests_allowed_ && id(fe_r2_dhw_valve).state,
-                              now_ms, cfg.valve_test_max_ms);
+        oq_fe_io::update_test(valve_test_, id(fe_test_dhw_valve).state, tests_allowed_, now_ms, cfg.valve_test_max_ms);
     const auto element = oq_fe_io::update_test(
         element_test_, id(fe_test_dhw_element).state,
-        tests_allowed_ &&
-            oq_fe_io::element_test_allowed(source_present, id(fe_dhw_tank_top).state, cfg.element_test_max_top_c),
-        now_ms, cfg.element_test_max_ms);
+        tests_allowed_ && oq_fe_io::element_test_allowed(id(fe_dhw_tank_top).state, cfg.element_test_max_top_c), now_ms,
+        cfg.element_test_max_ms);
     valve_test_on_ = valve.on;
     element_test_on_ = element.on;
     if (valve.release_request) {
@@ -70,14 +72,12 @@ class Runtime {
 
  private:
   void apply_() {
-    const bool source_present = id(oq_aux_heat_source_present).state;
-    const bool r1 = oq_fe_io::r1_output(source_present, boiler_request_, dhw_element_request_ || element_test_on_);
-    const bool r2 =
-        oq_fe_io::r2_output(id(fe_r2_dhw_valve).state, aux_relay_request_, dhw_valve_request_ || valve_test_on_);
-    write_(id(fe_r1_gpio_out), r1, r1_written_, r1_known_, "R1");
-    write_(id(fe_r2_gpio_out), r2, r2_written_, r2_known_, "R2");
-    if (!id(fe_dhw_element_active).has_state() || id(fe_dhw_element_active).state != (r1 && !source_present)) {
-      id(fe_dhw_element_active).publish_state(r1 && !source_present);
+    const bool r1 = oq_fe_io::r1_valve_output(dhw_valve_request_, valve_test_on_);
+    const bool r2 = oq_fe_io::r2_element_output(dhw_element_request_, element_test_on_);
+    write_(id(fe_r1_gpio_out), r1, r1_written_, r1_known_, "R1 valve");
+    write_(id(fe_r2_gpio_out), r2, r2_written_, r2_known_, "R2 element");
+    if (!id(fe_dhw_element_active).has_state() || id(fe_dhw_element_active).state != r2) {
+      id(fe_dhw_element_active).publish_state(r2);
     }
   }
 
@@ -102,8 +102,6 @@ class Runtime {
   }
 
   bool tests_allowed_ = false;
-  bool boiler_request_ = false;
-  bool aux_relay_request_ = false;
   bool dhw_valve_request_ = false;
   bool dhw_element_request_ = false;
   bool valve_test_on_ = false;

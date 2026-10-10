@@ -1,9 +1,9 @@
 // OpenQuatt FE - eigenaarschap van R1/R2 en de bankproef-uitgangen.
 //
-// Upstream schrijft R1 (ketel) en R2 (hulprelais) via hun eigen runtimes. In het
-// FE-target lopen die schrijfacties via een template-output naar deze logica,
-// die per relais bepaalt wat er fysiek op de pin komt. Zo hoeft geen upstream-
-// bestand te veranderen en bestaat er per pin precies één eigenaar.
+// Full Electric heeft geen CV-ketel en geen hulprelais: FE is de enige eigenaar
+// van beide relais. R1 stuurt de 3-wegklep, R2 het element. Upstream schrijft
+// zijn ketel- en hulprelaisvraag nog wel naar een template-output met de oude
+// id, maar die vraag komt in FE nooit op een pin.
 #pragma once
 
 #include <math.h>
@@ -11,18 +11,13 @@
 
 namespace oq_fe_io {
 
-// R1: is er een bijverwarmer (CV-ketel) aangesloten, dan volgt R1 upstream.
-// Zonder bijverwarmer (Full Electric) is R1 het DHW-element. Upstream houdt de
-// ketelvraag dan zelf al laag; het element valt bij het omzetten van de
-// schakelaar direct af.
-inline bool r1_output(bool aux_heat_source_present, bool boiler_request, bool element_request) {
-  return aux_heat_source_present ? boiler_request : element_request;
-}
+// R1 (COM/NO): 3-wegklep. Bekrachtigd = DHW-stand, onbekrachtigd = CV-stand,
+// dus elke storing of herstart laat de klep op CV vallen.
+inline bool r1_valve_output(bool dhw_valve_request, bool valve_test) { return dhw_valve_request || valve_test; }
 
-// R2: als DHW-klep in gebruik, dan volgt R2 de klepvraag; anders upstream.
-// Onbekrachtigd = CV-stand, dus elke storing laat de klep op CV vallen.
-inline bool r2_output(bool r2_is_dhw_valve, bool aux_relay_request, bool valve_request) {
-  return r2_is_dhw_valve ? valve_request : aux_relay_request;
+// R2 (NC/COM/NO, contactor op NO): het 3 kW-element.
+inline bool r2_element_output(bool dhw_element_request, bool element_test) {
+  return dhw_element_request || element_test;
 }
 
 // Een DS18B20 meldt na een spanningsreset eenmalig exact 85,0 C. Die waarde
@@ -84,10 +79,10 @@ inline TestDecision update_test(TestState& state, bool requested, bool allowed, 
   return result;
 }
 
-// Het element mag alleen proefdraaien als R1 van FE is, tank top een geldige
-// waarde heeft en de tank nog ruim onder de grens van het element zit.
-inline bool element_test_allowed(bool aux_heat_source_present, float tank_top_c, float max_top_c) {
-  return !aux_heat_source_present && plausible_tank_temp(tank_top_c) && tank_top_c < max_top_c;
+// Het element mag alleen proefdraaien als tank top een geldige waarde heeft en
+// de tank nog ruim onder de grens van het element zit.
+inline bool element_test_allowed(float tank_top_c, float max_top_c) {
+  return plausible_tank_temp(tank_top_c) && tank_top_c < max_top_c;
 }
 
 enum class ValvePosition : uint8_t { UNKNOWN, CV, DHW };

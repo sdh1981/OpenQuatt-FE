@@ -13,23 +13,14 @@ namespace {
 
 using namespace oq_fe_io;
 
-// Met een ketel volgt R1 alleen de ketelvraag; het element kan R1 niet pakken.
-void test_r1_follows_boiler_when_source_present() {
-  assert(r1_output(true, true, false));
-  assert(!r1_output(true, false, true));
-}
-
-// Full Electric: R1 is het element, een (verdwaalde) ketelvraag telt niet.
-void test_r1_is_element_without_source() {
-  assert(r1_output(false, false, true));
-  assert(!r1_output(false, true, false));
-}
-
-void test_r2_ownership() {
-  assert(r2_output(true, false, true));
-  assert(!r2_output(true, true, false));
-  assert(r2_output(false, true, false));
-  assert(!r2_output(false, false, true));
+// R1 is de klep, R2 het element; een proef of een DHW-vraag zet ze aan.
+void test_relay_outputs() {
+  assert(!r1_valve_output(false, false));
+  assert(r1_valve_output(true, false));
+  assert(r1_valve_output(false, true));
+  assert(!r2_element_output(false, false));
+  assert(r2_element_output(true, false));
+  assert(r2_element_output(false, true));
 }
 
 void test_ds18b20_power_on_value() {
@@ -39,10 +30,9 @@ void test_ds18b20_power_on_value() {
 }
 
 void test_element_test_guard() {
-  assert(element_test_allowed(false, 50.0f, 65.0f));
-  assert(!element_test_allowed(true, 50.0f, 65.0f));  // R1 is van de ketel
-  assert(!element_test_allowed(false, NAN, 65.0f));   // tank top onbekend
-  assert(!element_test_allowed(false, 65.0f, 65.0f));
+  assert(element_test_allowed(50.0f, 65.0f));
+  assert(!element_test_allowed(NAN, 65.0f));  // tank top onbekend
+  assert(!element_test_allowed(65.0f, 65.0f));
 }
 
 // Een proef loopt tot de maximale duur en valt dan af; pas na loslaten kan
@@ -95,9 +85,7 @@ void test_valve_position() {
 }  // namespace
 
 int main() {
-  test_r1_follows_boiler_when_source_present();
-  test_r1_is_element_without_source();
-  test_r2_ownership();
+  test_relay_outputs();
   test_ds18b20_power_on_value();
   test_element_test_guard();
   test_test_output_expires();

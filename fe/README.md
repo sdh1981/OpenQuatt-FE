@@ -20,8 +20,8 @@ Deze map (`fe/`) bevat alles wat specifiek is voor FE en niet uit upstream komt.
 
 | Klem op de Q | Functie |
 |---|---|
-| R1 | Contactor van het 3 kW-element. Er is geen CV-ketel; in de firmware staat "Auxiliary heat source connected" uit |
-| R2 | 3-wegklep (onbekrachtigd = CV-stand) |
+| R1 (COM/NO) | 3-wegklep: bekrachtigd = DHW-stand, onbekrachtigd = CV-stand (gewijzigd 10-10) |
+| R2 (contactor op NO) | Contactor van het 3 kW-element (gewijzigd 10-10) |
 | Tweakers-connector boven, GPIO44 + GND | Terugmelding van de klep: het hulpcontact sluit in de DHW-stand. GPIO43 blijft vrij: de ROM-bootloader stuurt die pin bij elke start aan |
 | Q-stekker | PT1000 aanvoertemperatuur en flowpuls (upstream) |
 | T | Twee DS18B20-sensoren: tank top en tank bottom |
@@ -35,10 +35,12 @@ De FE-firmware haalt nooit een upstream-image binnen. De OTA-manifesten wijzen n
 
 ## Hoe R1 en R2 werken
 
-Upstream stuurt R1 (ketel) en R2 (hulprelais) aan via hun eigen runtimes. In het FE-target vervangt `fe_io.yaml` de twee fysieke uitgangen door een template-output met dezelfde id. Upstream schrijft dus nog steeds, maar `oq_fe_io_runtime` beslist wat er op de pin komt:
+Full Electric heeft geen CV-ketel en geen hulprelais. FE is de enige eigenaar van beide relais:
 
-- **R1:** staat **Auxiliary heat source connected** aan, dan volgt R1 de upstream-ketelvraag. Staat die uit (Full Electric), dan is R1 het DHW-element. Zet die schakelaar dus **uit**; upstream zet hem bij een nieuwe installatie standaard aan.
-- **R2:** staat **R2 is DHW valve** aan (standaard), dan is R2 de 3-wegklep, en de instelling van het hulprelais in de web-app heeft dan geen effect. Staat die uit, dan volgt R2 upstream.
+- **R1 (GPIO16, COM/NO):** de 3-wegklep. Bekrachtigd = DHW-stand. Na een storing of herstart valt de klep onbekrachtigd op CV.
+- **R2 (GPIO3, contactor op NO):** het 3 kW-element.
+
+**De CV-ketel staat uit.** `fe_io.yaml` vervangt de fysieke uitgangen `boiler_relay_out` en `controller_aux_relay_out` door een template-output met dezelfde id. Upstream schrijft daar nog naartoe, maar `oq_fe_io_runtime` negeert die vraag. Daarnaast staat **Auxiliary heat source connected** altijd uit: bij de opstart (`ALWAYS_OFF`), en de runtime zet hem terug als hij toch aangaat. Upstream schakelt daarmee zelf ketel-assist, ketel-terugval, OpenTherm naar de ketel en CM3/CM4 af. De instelling van het hulprelais in de web-app heeft geen effect.
 
 Upstream-bestanden blijven daarbij ongewijzigd.
 
@@ -46,9 +48,9 @@ Upstream-bestanden blijven daarbij ongewijzigd.
 
 1. Sluit beide DS18B20's aan op T, en controleer of de Q een pull-up van 4,7 kΩ op DATA heeft.
 2. Start de Q. De log van `one_wire` toont de gevonden adressen. Vul ze in bij `fe_dallas_tank_top_address` en `fe_dallas_tank_bottom_address` in `openquatt/fe/fe_io.yaml` en bouw opnieuw. Zolang de adressen niet kloppen, blijft **DHW Tank Top** leeg en mag het element niet proefdraaien.
-3. Zet **Auxiliary heat source connected** uit.
-4. **DHW Test Valve** zet R2 maximaal 5 minuten aan. **DHW Valve Position** moet naar `DHW` gaan en na het uitzetten terug naar `CV`.
-5. **DHW Test Element** zet R1 maximaal 2 minuten aan, en alleen als tank top geldig is en onder 65 °C ligt. **DHW Element Active** toont de stand.
+3. Controleer dat **Auxiliary heat source connected** uit staat. De firmware dwingt dat af.
+4. **DHW Test Valve** zet R1 maximaal 5 minuten aan. **DHW Valve Position** moet naar `DHW` gaan en na het uitzetten terug naar `CV`.
+5. **DHW Test Element** zet R2 maximaal 2 minuten aan, en alleen als tank top geldig is en onder 65 °C ligt. **DHW Element Active** toont de stand.
 
 Een verlopen of geweigerde proef zet de schakelaar zelf terug. De reden staat in **DHW Test Valve Status** en **DHW Test Element Status**.
 
@@ -72,6 +74,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 3 | I/O: twee DS18B20 op T (85,0 °C-opstartwaarde gefilterd), klep op R2, terugmelding op GPIO44, element op R1, bankproef-schakelaars | PR #3 |
 | 4a | DHW stuurt de warmtepompen: CM10, eigen strategie en flow-setpoint, coil-in-mapping op de HP-uitlaat, zachte aanloop, single-HP met assist, snelboost met bewaking, legionella | PR #5 |
 | 4c | Tapdetectie, standby-loss-lerer met ETA's, element-only (CM11); tarief/PV en adaptief leren vervallen | PR #7 |
+| 4d | R1 = 3-wegklep, R2 = element; de CV-ketel staat in FE vast uit | PR #8 |
 | 5 | Web-app en HA-dashboard | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
