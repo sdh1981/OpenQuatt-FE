@@ -5,7 +5,7 @@
 # R1, 3 kW element on R2, tank top/bottom DS18B20 on T; no CV boiler). The upstream entrypoint
 # is included unchanged; FE-specific ownership lives under openquatt/fe/.
 substitutions:
-  project_version: "v0.53.0-fe.4"
+  project_version: "v0.53.0-fe.5"
   # FE firmware must never pull an upstream image over itself: OTA manifests
   # point at this repository, and the single/duo switch is disabled because no
   # FE single target exists.

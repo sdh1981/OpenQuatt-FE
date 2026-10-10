@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "../../openquatt/includes/fe/oq_fe_io_logic.h"
 
@@ -76,6 +77,20 @@ void test_test_output_survives_millis_wrap() {
   assert(!d.on && d.status == TestStatus::EXPIRED);
 }
 
+void test_bench_tests_allowed() {
+  assert(bench_tests_allowed(true, false));    // rust of storing
+  assert(!bench_tests_allowed(false, false));  // lopende cyclus
+  assert(!bench_tests_allowed(true, true));    // element-only
+}
+
+void test_format_onewire_address() {
+  char buf[24];
+  format_onewire_address(0x3C01B5569C0A3128ULL, buf, sizeof(buf));
+  assert(strcmp(buf, "0x3C01B5569C0A3128") == 0);
+  format_onewire_address(0x28ULL, buf, sizeof(buf));
+  assert(strcmp(buf, "0x0000000000000028") == 0);
+}
+
 void test_valve_position() {
   assert(valve_position(false, true) == ValvePosition::UNKNOWN);
   assert(valve_position(true, true) == ValvePosition::DHW);
@@ -92,5 +107,7 @@ int main() {
   test_test_output_withdrawn();
   test_test_output_survives_millis_wrap();
   test_valve_position();
+  test_bench_tests_allowed();
+  test_format_onewire_address();
   return 0;
 }

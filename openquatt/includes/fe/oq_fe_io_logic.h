@@ -8,6 +8,7 @@
 
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 
 namespace oq_fe_io {
 
@@ -77,6 +78,19 @@ inline TestDecision update_test(TestState& state, bool requested, bool allowed, 
   result.on = true;
   result.status = TestStatus::ON;
   return result;
+}
+
+// Bankproeven mogen zolang de DHW-regeling niets doet: in rust of in storing
+// (in storing staan alle uitgangen al veilig uit, en bij het in gebruik nemen
+// ontbreken juist nog sensoren). Niet tijdens een lopende cyclus of element-only.
+inline bool bench_tests_allowed(bool dhw_at_rest_or_fault, bool element_only) {
+  return dhw_at_rest_or_fault && !element_only;
+}
+
+// 1-Wire-adres zoals ESPHome het in YAML verwacht: 0x + 16 hexcijfers.
+// buf moet minstens 19 tekens bevatten.
+inline void format_onewire_address(uint64_t address, char* buf, size_t len) {
+  snprintf(buf, len, "0x%016llX", (unsigned long long)address);
 }
 
 // Het element mag alleen proefdraaien als tank top een geldige waarde heeft en

@@ -47,12 +47,12 @@ Upstream-bestanden blijven daarbij ongewijzigd.
 ## Bankproef
 
 1. Sluit beide DS18B20's aan op T, en controleer of de Q een pull-up van 4,7 kΩ op DATA heeft.
-2. Start de Q. De log van `one_wire` toont de gevonden adressen. Vul ze in bij `fe_dallas_tank_top_address` en `fe_dallas_tank_bottom_address` in `openquatt/fe/fe_io.yaml` en bouw opnieuw. Zolang de adressen niet kloppen, blijft **DHW Tank Top** leeg en mag het element niet proefdraaien.
+2. Start de Q. **DHW 1-Wire adressen** toont de gevonden adressen, en de USB-log meldt ze bij het opstarten op INFO (`1-Wire devices on T: …`). Sluit eerst alleen de top-sensor aan, daarna de bottom. De bus zoekt alleen bij het opstarten, dus herstart na het aansluiten. Vul de adressen in bij `fe_dallas_tank_top_address` en `fe_dallas_tank_bottom_address` in `openquatt/fe/fe_io.yaml` en bouw opnieuw. Zolang de adressen niet kloppen, blijft **DHW Tank Top** leeg en mag het element niet proefdraaien.
 3. Controleer dat **Auxiliary heat source connected** uit staat. De firmware dwingt dat af.
 4. **DHW Test Valve** zet R1 maximaal 5 minuten aan. **DHW Valve Position** moet naar `DHW` gaan en na het uitzetten terug naar `CV`.
 5. **DHW Test Element** zet R2 maximaal 2 minuten aan, en alleen als tank top geldig is en onder 65 °C ligt. **DHW Element Active** toont de stand.
 
-Een verlopen of geweigerde proef zet de schakelaar zelf terug. De reden staat in **DHW Test Valve Status** en **DHW Test Element Status**.
+De proeven werken als de DHW-regeling niets doet: in rust of in storing (sinds fe.5). Ze zijn geblokkeerd tijdens een lopende cyclus, bij element-only en tijdens service. Een verlopen of geweigerde proef zet de schakelaar zelf terug. De reden staat in **DHW Test Valve Status** en **DHW Test Element Status**.
 
 Upstream leest met zijn eigen DS18B20 (`index: 0`) op deze bus een van de tanksensoren. Die sensor is daarom intern gemaakt, en de lokale aanvoerbron wordt steeds teruggezet naar `PT1000`.
 

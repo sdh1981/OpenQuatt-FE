@@ -1,6 +1,8 @@
 // OpenQuatt FE - runtime voor R1/R2 en de bankproeven (alleen in het FE-target).
 #pragma once
 
+#include <string>
+
 #include "oq_fe_io_logic.h"
 
 // De map-include neemt deze header in elk target op; alleen het FE-target heeft
@@ -33,11 +35,28 @@ class Runtime {
     apply_();
   }
 
-  // Bankproeven alleen als de DHW-regeling stilstaat (IDLE_CV, geen fout).
+  // Bankproeven alleen als de DHW-regeling niets doet (rust of storing).
   void set_tests_allowed(bool allowed) { tests_allowed_ = allowed; }
+
+  // Gevonden adressen op de T-bus (1-Wire), komma-gescheiden.
+  static std::string onewire_addresses() {
+    std::string out;
+    char buf[24];
+    for (const uint64_t address : id(oq_local_temp_bus).get_devices()) {
+      oq_fe_io::format_onewire_address(address, buf, sizeof(buf));
+      if (!out.empty()) out += ", ";
+      out += buf;
+    }
+    return out.empty() ? std::string("Geen") : out;
+  }
 
   void tick(const TickConfig& cfg) {
     const uint32_t now_ms = (uint32_t)millis();
+    if (!onewire_logged_) {
+      // Op INFO, zodat het ook met het standaard logniveau in de USB-log staat.
+      ESP_LOGI("fe.io", "1-Wire devices on T: %s", onewire_addresses().c_str());
+      onewire_logged_ = true;
+    }
     // Full Electric: de CV-ketel staat altijd uit. Upstream schakelt dan zelf
     // ketel-assist, ketel-terugval en OpenTherm naar de ketel af.
     if (id(oq_aux_heat_source_present).state) {
@@ -102,6 +121,7 @@ class Runtime {
   }
 
   bool tests_allowed_ = false;
+  bool onewire_logged_ = false;
   bool dhw_valve_request_ = false;
   bool dhw_element_request_ = false;
   bool valve_test_on_ = false;
