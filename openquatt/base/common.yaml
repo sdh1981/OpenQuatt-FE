@@ -18,7 +18,9 @@ esphome:
     - ${oq_component_psram_buffer_header}
     - ${oq_component_external_telemetry_transport_header}
     - ${oq_component_flash_layout_header}
-    - ${openquatt_root}/includes/sources/oq_source_receipt_runtime.h
+    # FE: sources/oq_source_receipt_runtime.h niet meer los opgenomen; de map-include
+    # (oq_cpp_headers_dir) neemt hem al op. Een tweede, platte kopie in src/ maakte de compile afhankelijk
+    # van de mtime-seconde van het kopiëren (#pragma once).
   build_flags:
     # Hard-pinned by the topology entrypoint to prevent accidental topology drift.
     - ${oq_topology_build_flag}

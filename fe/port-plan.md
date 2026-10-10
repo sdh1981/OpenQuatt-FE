@@ -62,6 +62,8 @@ Wat de DHW-laag nu op de LilyGO gebruikt, en de Q-opties daarvoor:
 | ~~CWT-TM-8PT~~ | RS485 #3 | — | **Vervalt (01-10).** M1 en M2 blijven ongedeeld, en het risico met de comms-watchdog op M1 is weg |
 | **M2** (RS485 #2) | CiC-feedback | Upstream: CiC-server | **Besloten (01-10): CiC vervalt, M2 is vrij.** Een reserve voor een eventuele Modbus-module, bijvoorbeeld om de coil in/uit-sensoren later terug te brengen. Let op: de UART op M2 wordt nog door het upstream CiC-package gedeclareerd. Een eigen device op M2 moet die `uart_bus` dus delen of het package vervangen |
 
+**Gewijzigd (10-10):** R1 stuurt de 3-wegklep, R2 het element, en de CV-ketel staat in FE vast uit. De tabel hierboven beschrijft de oorspronkelijke keuze; actueel is `fe/README.md`.
+
 **Tank top: besloten (01-10), route A, een tweede DS18B20.** Waarom:
 - `tank_top_c` is verplicht in `oq_dhw_controller_logic.h` (anders `SENSOR_IMPLAUSIBLE`). Daarop draaien de start (46 °C), boost, het HP-plafond (55 °C, tegen hoge condensordruk) en de legionella-hold (68 °C / 15 min). Het element zit bij de top.
 - Bottom-only zou de legionella-controle onbetrouwbaar maken, meer pendelen geven na het tappen, en betekent een tweede grote verandering tijdens de port.

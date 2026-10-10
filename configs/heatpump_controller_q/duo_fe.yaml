@@ -2,10 +2,10 @@
 # OpenQuatt FE - Electropaultje Heatpump Controller Q-edition / Duo, Full Electric
 # ==============================================================================
 # Upstream Q Duo firmware plus the FE layer (DHW boiler control: 3-way valve on
-# R2, 3 kW element on R1, tank top/bottom DS18B20 on T). The upstream entrypoint
+# R1, 3 kW element on R2, tank top/bottom DS18B20 on T; no CV boiler). The upstream entrypoint
 # is included unchanged; FE-specific ownership lives under openquatt/fe/.
 substitutions:
-  project_version: "v0.53.0-fe.3"
+  project_version: "v0.53.0-fe.4"
   # FE firmware must never pull an upstream image over itself: OTA manifests
   # point at this repository, and the single/duo switch is disabled because no
   # FE single target exists.
