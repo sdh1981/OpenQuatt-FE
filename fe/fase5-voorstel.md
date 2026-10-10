@@ -108,11 +108,18 @@ Elke web-PR draait `npm run check:web`, `smoke:web` en `build-assets.mjs --check
 
 ---
 
-## 5. Beslispunten
+## 5. Beslissingen (2026-10-11)
 
-1. **Plaats:** een eigen instellingengroep **Warm water** plus een kaart op **Overzicht**? Of liever alles in één nieuwe view "Warm water" naast Overzicht/Warmtepomp/Energie?
-2. **Ketel-UI verbergen** in FE: de quickstart-stap, CV-ketel, hulprelais en de OTB-onderdelen?
-3. **Bankproef in de app** onder Service (5c)?
-4. **Decision log** voor CM10/CM11 nu meenemen (component plus web), of later?
-5. **HA:** de kaarten en het package uit de LilyGO-build overnemen plus een nieuwe view "Warm water", of alleen de nieuwe view?
-6. **Lokale Node** via pip in de scratchpad voor de web-checks? Zonder Node kan ik alleen via CI controleren.
+1. **Plaats:** een instellingengroep **Warm water** plus een kaart op **Overzicht**.
+2. **Ketel-UI verbergen** in FE: ja.
+3. **Bankproef in de app** onder Service: ja.
+4. **Decision log** voor CM10/CM11: nu meenemen (component plus web).
+5. **HA:** de kaarten en het package uit de LilyGO-build overnemen, plus een nieuwe view "Warm water".
+6. **Lokale Node** via pip in de scratchpad: ja.
+
+### Uitwerkingen tijdens de bouw van 5a
+
+- **Laden van de entiteiten.** De app laadt per instellingengroep alleen de sleutels uit `SETTINGS_GROUP_KEY_MAP`. "Warm water" krijgt daarom een eigen lijst (`DHW_SETTING_KEYS`). `dhwState` staat in `HEADER_ENTITY_KEYS`, zodat de FE-herkenning op elke pagina klopt.
+- **Bundlebudget.** De bundle zat al vlak tegen upstream's absolute budget: nog ~3,4 KB raw over. FE verhoogt het budget daarom eenmalig voor heel fase 5: raw 1,29 → 1,34 MB, gzip-plafond 362 → 375 kB. De groeigrens per PR (7,5 KB of 3%) blijft staan. 5a groeit 15,5 KB raw / 4,4 kB gzip.
+- **Nederlandse firmwarenamen.** Drie firmwarenamen van DHW-entiteiten zijn Nederlands, zoals "DHW ruimtetemperatuur bron". Ze staan in de uitzonderingenlijst van de i18n-test, net als upstream's "Uurdetail bewaren".
+- **Lokale web-checks.** Die vragen een LF-checkout (`core.autocrlf=false`). Eén upstream-test faalt alleen op Windows (`path.relative` geeft backslashes); in CI op Linux slaagt hij.
