@@ -89,7 +89,7 @@ Elke haak staat achter `#if OQ_FE_TARGET` of is in een upstream-build onbereikba
 | `control/oq_thermal_request_logic.h` | CM10 → verwarmstand met `STRATEGY_DHW`; niveaus uit `oq_fe_dhw_bridge` |
 | `control/oq_flow_runtime.h` | Flow-setpoint in CM10; CM11 is flow-idle |
 | `control/oq_thermal_actuator_runtime.h` | CM10 in de melding "frequentiegrens blokkeert start" |
-| `base/common.yaml`, `oq_boiler_control.yaml`, `oq_boiler_opentherm.yaml` | Losse header-includes weg (de map-include neemt ze al op); voorkomt de mtime-race bij `#pragma once`. Upstream-bug; nog te melden aan Jeroen |
+| `base/common.yaml`, `oq_boiler_control.yaml`, `oq_boiler_opentherm.yaml` | Losse header-includes weg (de map-include neemt ze al op); voorkomt de mtime-race bij `#pragma once`. Upstream-bug, gemeld in OpenQuatt/OpenQuatt#824; weghalen zodra upstream het oplost |
 | `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (70 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
 
 ## Control modes
