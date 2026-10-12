@@ -32,6 +32,10 @@ const INTENTIONAL_INTERNAL_VALUES = new Map([
     "Uurdetail bewaren",
     "Lifetime energiehistorie nu opslaan",
     "Lifetime energiehistorie wissen",
+    // OpenQuatt FE: firmwarenamen van DHW-entiteiten (wire-waarden, geen UI-tekst).
+    "DHW legionella volgende run",
+    "DHW ruimtetemperatuur actief",
+    "DHW ruimtetemperatuur bron",
   ])],
   ["features/control-replay-view.js", new Set(["CV-ketel", "Koeling"])],
   ["features/device-context.js", new Set(["onbekend"])],

@@ -274,6 +274,19 @@ dauwpuntwaarde.
 
 Wil je externe bronwaarden of toestemmingssignalen via MQTT aanleveren, configureer dan eerst de broker bij **Bronnen / integraties -> MQTT inputbronnen**. In **MQTT sensoren** kun je per topic zien wat OpenQuatt verwacht en ongebruikte topics uitzetten. Zie [MQTT inputbronnen](mqtt.md) voor topics, payload en geldigheid. Zonder MQTT-broker kan hetzelfde via [API inputbronnen](api-input.md).
 
+### Warm water
+
+Alleen in OpenQuatt FE (Full Electric met een boiler, 3-wegklep en 3 kW-element). Deze groep bundelt de warmwaterregeling:
+
+- **Regeling:** de start- en stopgrens, het compressorniveau, de flow, de rust tussen cycli, de boost na de warmtepompfase en het tijdvenster.
+- **Compressorniveau:** de niveaumapping op de inlaattemperatuur, de zachte aanloop, de modus met één warmtepomp en het bijschakelen van de tweede unit.
+- **Snelboost:** de doelen en de warmtepompstop.
+- **Legionella:** het doel en de overdracht naar het element, met de laatste en de volgende run.
+- **Alleen element (CM11):** de schakelaar en de thermostaat op tank bottom.
+- **Tank:** tapdetectie, het tankvolume, de ruimtetemperatuur en het geleerde warmteverlies.
+
+Op FE verdwijnen de CV-ketel, het hulprelais en de OTB-diagnose uit de app; FE heeft geen CV-ketel. Zie `fe/README.md` in de FE-repository.
+
 ### Bronnen / integraties
 
 Hier beheer je de directe gegevensbronnen en integraties:

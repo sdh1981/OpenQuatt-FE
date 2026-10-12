@@ -75,7 +75,8 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 4a | DHW stuurt de warmtepompen: CM10, eigen strategie en flow-setpoint, coil-in-mapping op de HP-uitlaat, zachte aanloop, single-HP met assist, snelboost met bewaking, legionella | PR #5 |
 | 4c | Tapdetectie, standby-loss-lerer met ETA's, element-only (CM11); tarief/PV en adaptief leren vervallen | PR #7 |
 | 4d | R1 = 3-wegklep, R2 = element; de CV-ketel staat in FE vast uit | PR #8 |
-| 5 | Web-app en HA-dashboard | gepland |
+| 5a | Web-app: instellingengroep "Warm water", CV-ketel en hulprelais verborgen, backup-sectie | PR #12 |
+| 5b–5d | Warmwaterkaart op het overzicht, bankproef onder Service, decision log CM10/CM11, HA-bestanden. Voorstel: `fe/fase5-voorstel.md` | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
 ## Haken in upstream-bestanden

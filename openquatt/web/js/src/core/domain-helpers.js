@@ -1,4 +1,4 @@
-import { getEntityValue } from "./entity-store.js";
+import { getEntityValue, hasEntity } from "./entity-store.js";
 import { getBasePath } from "./url-path.js";
 
   export function buildEntityPath(domain, name, action = "") {
@@ -14,3 +14,7 @@ import { getBasePath } from "./url-path.js";
     return String(value || "").toLowerCase().includes("manual");
   }
 
+  // OpenQuatt FE (Full Electric): geen CV-ketel en geen hulprelais; herkend aan de DHW-regeling.
+  export function isFullElectric() {
+    return hasEntity("dhwState");
+  }

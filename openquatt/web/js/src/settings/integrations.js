@@ -1,4 +1,5 @@
 import { getEntityNumericValue, hasEntity } from "../core/app-shared.js";
+import { isFullElectric } from "../core/domain-helpers.js";
 import { renderOqIcon, SENSOR_SELECTION_KEYS } from "../core/config.js";
 import { getInputDraftValue } from "../core/control-drafts.js";
 import { getEntityValue, getNumberMeta } from "../core/entity-store.js";
@@ -112,7 +113,8 @@ import { formatNumber, optionLabel, t } from "../i18n/index.js";
       renderValueDiagnosticItem("otRoomTemp", t("settingsIntegrations.diagOtRoomTemp"), { fallbackKey: "roomTemp" }),
     ]);
 
-    const boilerDiagnosticPanel = renderDiagnosticGroup(t("settingsIntegrations.diagGroupBoiler"), [
+    const fullElectric = isFullElectric();
+    const boilerDiagnosticPanel = fullElectric ? "" : renderDiagnosticGroup(t("settingsIntegrations.diagGroupBoiler"), [
       hasEntity("boilerConnection") ? renderDiagnosticItem({
         label: t("settingsIntegrations.diagBoilerConnection"),
         value: otbSelected ? t("settingsInstallation.boilerConnectionOt") : t("settingsInstallation.boilerConnectionR1"),
@@ -172,7 +174,7 @@ import { formatNumber, optionLabel, t } from "../i18n/index.js";
         renderValueDiagnosticItem("otbResponseCount", t("settingsIntegrations.diagOtbResponses")),
       );
     }
-    const otbDiagnosticPanel = renderDiagnosticGroup(t("settingsIntegrations.diagGroupOtb"), otbDiagnosticRows);
+    const otbDiagnosticPanel = fullElectric ? "" : renderDiagnosticGroup(t("settingsIntegrations.diagGroupOtb"), otbDiagnosticRows);
 
     const cicDiagnosticPanel = renderDiagnosticGroup(t("settingsIntegrations.diagGroupCic"), [
       hasEntity("cicJsonFeedOk") ? renderDiagnosticItem({

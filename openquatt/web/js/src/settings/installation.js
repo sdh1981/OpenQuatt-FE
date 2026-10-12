@@ -1,7 +1,7 @@
 import { getEntityNumericValue, getEntityStateText, hasEntity, isEntityActive } from "../core/app-shared.js";
 import { HP_GENERATION_IMAGE_V1, HP_GENERATION_IMAGE_V2 } from "../core/embedded-assets.js";
 import { getInputDraftValue } from "../core/control-drafts.js";
-import { isCurveMode } from "../core/domain-helpers.js";
+import { isCurveMode, isFullElectric } from "../core/domain-helpers.js";
 import { getEntityValue, getNumberMeta } from "../core/entity-store.js";
 import { formatIncidentOccurrenceTime, getFallbackBlockReasonLabel, getHeatPumpStatusPresentation, getIncidentActionPresentation, getIncidentCategoryLabel, getIncidentDisplayLabel, getIncidentEffectLabels, getIncidentLifecyclePresentation, getIncidentRecoveryLabel, getIncidentTechnicalCode, getIncidentUserActionLabel, getLinkLossConsequenceForHeatPump, getPumpIncidentContextRows, getSystemActionPresentation } from "../core/incident-monitoring.js";
 import { getInstallationMonitoringFailureText, getInstallationMonitoringModel, isInstallationMonitoringBinaryActive, isInstallationMonitoringFailureActive, isInstallationMonitoringIntegrationEnabled, syncInstallationMonitoringDetailsState } from "../core/installation-monitoring.js";
@@ -921,7 +921,7 @@ import { formatDateTime, formatNumber, t } from "../i18n/index.js";
   }
 
   export function renderSettingsBoilerCvSection() {
-    if (!hasEntity("auxHeatSourcePresent") && !hasEntity("boilerCvAssistEnabled")) {
+    if (isFullElectric() || (!hasEntity("auxHeatSourcePresent") && !hasEntity("boilerCvAssistEnabled"))) {
       return "";
     }
 
@@ -961,7 +961,7 @@ import { formatDateTime, formatNumber, t } from "../i18n/index.js";
   }
 
   export function renderSettingsAuxRelaySection() {
-    if (!hasEntity("auxRelayFunction")) {
+    if (isFullElectric() || !hasEntity("auxRelayFunction")) {
       return "";
     }
 

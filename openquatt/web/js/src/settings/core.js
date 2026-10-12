@@ -12,6 +12,7 @@ import { getWebAuthStatusDetail, getWebAuthStatusLabel } from "../features/secur
 import { getCommissioningStatusValue, patchSettingsChoiceOption, patchSettingsSelectControl } from "./controls.js";
 import { t } from "../i18n/index.js";
 import { renderSettingsCoolingSection } from "./cooling.js";
+import { renderSettingsDhwSections } from "./dhw.js";
 import { renderSettingsFlowSection, renderSettingsHeatingSection } from "./heating.js";
 import { patchHouseLearningSettingsStatus, renderHouseLearningSettings } from "./house-learning.js";
 import { renderSettingsElectricalCurrentLimitSection } from "./electrical-limit.js";
@@ -99,6 +100,8 @@ function syncFrequencyRangeControl(control) {
         ? [renderSettingsHeatingSection(), isCurveMode() ? "" : renderHouseLearningSettings()]
       : activeGroup === "cooling"
         ? [renderSettingsCoolingSection()]
+      : activeGroup === "dhw"
+        ? renderSettingsDhwSections()
         : activeGroup === "integrations"
             ? [
                 renderSettingsOpenThermCicSection(),

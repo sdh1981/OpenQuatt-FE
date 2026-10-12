@@ -1,6 +1,6 @@
 import { getEntityNumericValue, getEntityStateText, hasEntity, isEntityActive } from "../core/app-shared.js";
 import { QUICK_STEPS, STRATEGY_OPTION_CURVE, STRATEGY_OPTION_POWER_HOUSE } from "../core/config.js";
-import { isCurveMode } from "../core/domain-helpers.js";
+import { isCurveMode, isFullElectric } from "../core/domain-helpers.js";
 import { formatValue, getEntityValue, toTimeInputValue } from "../core/entity-store.js";
 import { createScrollKeeper } from "../core/scroll-keeper.js";
 import { renderModalShell } from "../core/modal-shell.js";
@@ -890,7 +890,8 @@ import { renderPerformanceTelemetryConsent, renderPerformanceTelemetryDisclosure
 
   export function getQuickSteps() {
     const isQEdition = getQuickStartHardwareProfileModel().isQEdition;
-    return QUICK_STEPS.filter((step) => (step.id !== "setup" || isQEdition) && (!step.optionalEntity || hasEntity(step.optionalEntity)));
+    const fullElectric = isFullElectric();
+    return QUICK_STEPS.filter((step) => (step.id !== "setup" || isQEdition) && (!step.optionalEntity || hasEntity(step.optionalEntity)) && !(fullElectric && step.id === "boiler"));
   }
 
   export function getQuickStepDefinition(stepId) {
