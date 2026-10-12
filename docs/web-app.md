@@ -287,6 +287,8 @@ Alleen in OpenQuatt FE (Full Electric met een boiler, 3-wegklep en 3 kW-element)
 
 Op het **Overzicht** staat op FE een kaart *Warm water*: tank boven en onder, de status en een eventuele storing, de geschatte tijd tot de tank klaar is, het element, de stand van de driewegklep en het aantal tappingen van vandaag. Daaronder staan Snelboost, Legionella nu, Blokkeren en (alleen bij een storing) Storing wissen; elke knop vraagt eerst om bevestiging. CM10 en CM11 krijgen een eigen label in de statuskaart.
 
+Onder **Service** staat op FE de sectie *Bankproef warm water*: de driewegklep (R1) en het element (R2) los schakelen, met de teststatus, de klepstand volgens de terugmelding en de gevonden 1-Wire-adressen. De testschakelaars gaan niet mee in de back-up.
+
 Op FE verdwijnen de CV-ketel, het hulprelais en de OTB-diagnose uit de app; FE heeft geen CV-ketel. Zie `fe/README.md` in de FE-repository.
 
 ### Bronnen / integraties

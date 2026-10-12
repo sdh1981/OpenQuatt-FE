@@ -1,4 +1,5 @@
-import { getEntityStateText, hasEntity } from "../core/app-shared.js";
+import { getEntityStateText, hasEntity, isEntityActive } from "../core/app-shared.js";
+import { getEntityValue } from "../core/entity-store.js";
 import {
   getSettingsStatValue,
   renderNamedActionButton,
@@ -122,6 +123,40 @@ function renderTankSection() {
     status("dhwUa", t("settingsDhw.uaTitle"), t("settingsDhw.uaCopy"), getSettingsStatValue("dhwUa", { decimals: 2 })),
     status("dhwUaSamples", t("settingsDhw.uaSamplesTitle"), "", getSettingsStatValue("dhwUaSamples", { decimals: 0 })),
   ]), reset);
+}
+
+const BENCH_STATUS_KEYS = Object.freeze({
+  On: "settingsDhw.benchStatusOn",
+  Off: "settingsDhw.benchStatusOff",
+  Expired: "settingsDhw.benchStatusExpired",
+  "Not allowed": "settingsDhw.benchStatusNotAllowed",
+});
+
+function benchStatus(key) {
+  const value = String(getEntityValue(key) ?? "").trim();
+  return BENCH_STATUS_KEYS[value] ? t(BENCH_STATUS_KEYS[value]) : value || "—";
+}
+
+function valvePositionText() {
+  const value = String(getEntityValue("dhwValvePosition") ?? "").trim();
+  if (value === "CV") return t("overviewDhw.valveCv");
+  if (value === "DHW") return t("overviewDhw.valveDhw");
+  return t("overviewDhw.valveUnknown");
+}
+
+// Bankproef onder Service: R1 (klep) en R2 (element) los schakelen.
+export function renderSettingsDhwBenchSection() {
+  if (!hasEntity("dhwTestValve") && !hasEntity("dhwTestElement")) return "";
+  const addresses = getEntityStateText("dhwOneWireAddresses", "—");
+  return renderSettingsSection(t("settingsDhw.benchGroup"), t("settingsDhw.benchTitle"), t("settingsDhw.benchCopy"), grid([
+    toggle("dhwTestValve", t("settingsDhw.benchValveTitle"), t("settingsDhw.benchValveCopy")),
+    status("dhwTestValveStatus", t("settingsDhw.benchValveStatusTitle"), "", benchStatus("dhwTestValveStatus")),
+    status("dhwValvePosition", t("settingsDhw.benchValvePositionTitle"), t("settingsDhw.benchValvePositionCopy"), valvePositionText()),
+    toggle("dhwTestElement", t("settingsDhw.benchElementTitle"), t("settingsDhw.benchElementCopy")),
+    status("dhwTestElementStatus", t("settingsDhw.benchElementStatusTitle"), "", benchStatus("dhwTestElementStatus")),
+    status("dhwElementActive", t("settingsDhw.benchElementActiveTitle"), "", isEntityActive("dhwElementActive") ? t("overviewDhw.on") : t("overviewDhw.off")),
+    status("dhwOneWireAddresses", t("settingsDhw.benchAddressesTitle"), t("settingsDhw.benchAddressesCopy"), addresses),
+  ]));
 }
 
 export function renderSettingsDhwSections() {

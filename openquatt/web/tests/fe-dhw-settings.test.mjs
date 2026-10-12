@@ -53,3 +53,27 @@ test("Full Electric follows the presence of the DHW state entity", () => {
     state.entities = previous;
   }
 });
+
+test("the bench test loads under Service and is never backed up", async () => {
+  const { DHW_BENCH_KEYS, SETTINGS_BACKUP_KEYS: backupKeys } = await import("../js/src/core/config.js");
+  const hydration = new Set(getSettingsGroupHydrationKeys("service"));
+  for (const key of DHW_BENCH_KEYS) {
+    assert.ok(ENTITY_DEFS[key]?.optional, `${key} is optional`);
+    assert.ok(hydration.has(key), `${key} is loaded for Service`);
+  }
+  for (const key of ["dhwTestValve", "dhwTestElement"]) {
+    assert.ok(!backupKeys.includes(key), `${key} is not backed up`);
+    assert.ok(!SETTINGS_KEYS.includes(key), `${key} is not a settings key`);
+  }
+});
+
+test("the bench test section only renders with the test switches", async () => {
+  const { renderSettingsDhwBenchSection } = await import("../js/src/settings/dhw.js");
+  const previous = state.entities;
+  try {
+    state.entities = {};
+    assert.equal(renderSettingsDhwBenchSection(), "");
+  } finally {
+    state.entities = previous;
+  }
+});

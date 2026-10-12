@@ -77,7 +77,8 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 4d | R1 = 3-wegklep, R2 = element; de CV-ketel staat in FE vast uit | PR #8 |
 | 5a | Web-app: instellingengroep "Warm water", CV-ketel en hulprelais verborgen, backup-sectie | PR #12 |
 | 5b | Warmwaterkaart op het overzicht met bevestigde acties; labels voor CM10/CM11. | fe.8 |
-| 5c–5d | Bankproef onder Service, decision log CM10/CM11, HA-bestanden. Voorstel: `fe/fase5-voorstel.md` | gepland |
+| 5c | Bankproef warm water onder Service (R1, R2, status, klepstand, 1-Wire-adressen). | fe.9 |
+| 5d | Decision log CM10/CM11, HA-bestanden. Voorstel: `fe/fase5-voorstel.md` | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
 ## Haken in upstream-bestanden
