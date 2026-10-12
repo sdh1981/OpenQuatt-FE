@@ -79,7 +79,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 5b | Warmwaterkaart op het overzicht met bevestigde acties; labels voor CM10/CM11. | fe.8 |
 | 5c | Bankproef warm water onder Service (R1, R2, status, klepstand, 1-Wire-adressen). | fe.9 |
 | 5d-1 | Decision log: eigen redenen voor CM10 (`dhw_request`), CM11 (`element_only`) en terug (`dhw_request_cleared`), codes 200–202. | fe.10 |
-| 5d-2 | HA-bestanden. Voorstel: `fe/fase5-voorstel.md` | gepland |
+| 5d-2 | HA-bestanden in `fe/dashboard/`: package, tankkaarten en de view "Warm water". | geen firmware |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
 ## Haken in upstream-bestanden
