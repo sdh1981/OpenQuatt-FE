@@ -464,6 +464,26 @@ void test_control_mode_log_classification() {
   decision = classify_control_mode_transition({5, 0, false, false, 10}, codes);
   assert(decision.reason == 19);
   assert(decision.to_state == 40);
+
+  // OpenQuatt FE: CM10/CM11 krijgen een eigen reden.
+  const ControlModeLogCodes fe_codes{
+      {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24},
+      {30, 31, 32},
+      {40, 41, 42, 43},
+  };
+  decision = classify_control_mode_transition({1, 10, false, false, 10}, fe_codes);
+  assert(decision.reason == 22);
+  assert(decision.to_state == 42);
+  decision = classify_control_mode_transition({0, 11, false, false, 10}, fe_codes);
+  assert(decision.reason == 23);
+  decision = classify_control_mode_transition({10, 1, false, false, 10}, fe_codes);
+  assert(decision.reason == 24);
+  decision = classify_control_mode_transition({11, 0, false, false, 10}, fe_codes);
+  assert(decision.reason == 24);
+  decision = classify_control_mode_transition({10, 2, false, false, 10}, fe_codes);
+  assert(decision.reason == 18);
+  decision = classify_control_mode_transition({10, 98, false, false, 10}, fe_codes);
+  assert(decision.reason == 16);
 }
 
 }  // namespace

@@ -4575,6 +4575,12 @@ export default {
     cm10: "CM10 · hot water",
     cm11: "CM11 · element only",
     strategy: "Hot water",
+    reasonDhwRequest: "Hot water request",
+    reasonDhwRequestCopy: "The tank asked for heat; the valve is set to the tank and the heat pump heats it (CM10).",
+    reasonElementOnly: "Element only",
+    reasonElementOnlyCopy: "Element only is on: the heat pumps stay off and the element keeps the tank warm (CM11).",
+    reasonDhwCleared: "Hot water request finished",
+    reasonDhwClearedCopy: "The hot water cycle finished or stopped; control returns to normal.",
   },
   overview: {
     monitoringTitle: "Installation monitoring",

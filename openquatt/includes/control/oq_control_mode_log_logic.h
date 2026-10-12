@@ -17,6 +17,10 @@ struct ControlModeLogReasonCodes {
   uint8_t cooling_request_cleared = 0;
   uint8_t heating_request_cleared = 0;
   uint8_t hp_recovery_wait = 0;
+  // OpenQuatt FE: CM10 (warm water) en CM11 (alleen element).
+  uint8_t dhw_request = 0;
+  uint8_t element_only = 0;
+  uint8_t dhw_request_cleared = 0;
 };
 
 struct ControlModeLogSeverityCodes {
@@ -79,6 +83,10 @@ inline ControlModeLogDecision classify_control_mode_transition(const ControlMode
     decision.reason = codes.reason.frost_protection;
   } else if (inputs.desired_mode == 5) {
     decision.reason = codes.reason.cooling_request;
+  } else if (inputs.desired_mode == 10) {
+    decision.reason = codes.reason.dhw_request;
+  } else if (inputs.desired_mode == 11) {
+    decision.reason = codes.reason.element_only;
   } else if (inputs.previous_mode == 4) {
     if (inputs.desired_mode == 2 || inputs.desired_mode == 3) {
       decision.reason = codes.reason.hp_recovered;
@@ -101,6 +109,9 @@ inline ControlModeLogDecision classify_control_mode_transition(const ControlMode
     decision.severity = codes.severity.limited;
   } else if (inputs.cm1_event_reason != codes.reason.unknown) {
     decision.reason = inputs.cm1_event_reason;
+  } else if ((inputs.desired_mode == 0 || inputs.desired_mode == 1) &&
+             (inputs.previous_mode == 10 || inputs.previous_mode == 11)) {
+    decision.reason = codes.reason.dhw_request_cleared;
   } else if (inputs.desired_mode == 0) {
     decision.reason =
         inputs.previous_mode == 5 ? codes.reason.cooling_request_cleared : codes.reason.heating_request_cleared;

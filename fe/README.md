@@ -78,7 +78,8 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 5a | Web-app: instellingengroep "Warm water", CV-ketel en hulprelais verborgen, backup-sectie | PR #12 |
 | 5b | Warmwaterkaart op het overzicht met bevestigde acties; labels voor CM10/CM11. | fe.8 |
 | 5c | Bankproef warm water onder Service (R1, R2, status, klepstand, 1-Wire-adressen). | fe.9 |
-| 5d | Decision log CM10/CM11, HA-bestanden. Voorstel: `fe/fase5-voorstel.md` | gepland |
+| 5d-1 | Decision log: eigen redenen voor CM10 (`dhw_request`), CM11 (`element_only`) en terug (`dhw_request_cleared`), codes 200–202. | fe.10 |
+| 5d-2 | HA-bestanden. Voorstel: `fe/fase5-voorstel.md` | gepland |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
 ## Haken in upstream-bestanden
@@ -87,7 +88,9 @@ Elke haak staat achter `#if OQ_FE_TARGET` of is in een upstream-build onbereikba
 
 | Bestand | Haak |
 |---|---|
-| `control/oq_supervisory_state_runtime.h` | DHW- en element-only-vraag, basisdoel CM10/CM11, CM1-voor- en naloop, CM-namen; pompen en sticky-bescherming in CM11 zoals in CM0 |
+| `control/oq_supervisory_state_runtime.h` | DHW- en element-only-vraag, basisdoel CM10/CM11, CM1-voor- en naloop, CM-namen; pompen en sticky-bescherming in CM11 zoals in CM0; logcodes voor CM10/CM11 |
+| `control/oq_control_mode_log_logic.h` | Redenen `dhw_request`, `element_only`, `dhw_request_cleared` |
+| `components/openquatt_decision_log` | Redencodes 200–202 (eigen FE-bereik) en hun namen |
 | `control/oq_supervisory_state_logic.h` | `hold_cm1_until_hp_idle` ook voor CM11 |
 | `control/oq_thermal_request_logic.h` | CM10 → verwarmstand met `STRATEGY_DHW`; niveaus uit `oq_fe_dhw_bridge` |
 | `control/oq_flow_runtime.h` | Flow-setpoint in CM10; CM11 is flow-idle |
