@@ -1026,6 +1026,9 @@ class Runtime {
                 openquatt_decision_log::REASON_COOLING_REQUEST_CLEARED,
                 openquatt_decision_log::REASON_HEATING_REQUEST_CLEARED,
                 openquatt_decision_log::REASON_HP_RECOVERY_WAIT,
+                openquatt_decision_log::REASON_DHW_REQUEST,          // FE
+                openquatt_decision_log::REASON_ELEMENT_ONLY,         // FE
+                openquatt_decision_log::REASON_DHW_REQUEST_CLEARED,  // FE
             },
             {
                 openquatt_decision_log::SEVERITY_NORMAL,

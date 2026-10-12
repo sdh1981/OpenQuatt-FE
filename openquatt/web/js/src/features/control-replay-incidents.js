@@ -16,6 +16,10 @@ const REASONS = Object.fromEntries([
   ["heating_request", "controlReplay.reasonHeatingRequest", "controlReplay.reasonHeatingRequestCopy"],
   ["commissioning", "controlReplay.reasonCommissioning", "controlReplay.reasonCommissioningCopy"],
   ["supervisory_override", "controlReplay.reasonOverride", "controlReplay.reasonOverrideCopy"],
+  // OpenQuatt FE.
+  ["dhw_request", "overviewDhw.reasonDhwRequest", "overviewDhw.reasonDhwRequestCopy"],
+  ["element_only", "overviewDhw.reasonElementOnly", "overviewDhw.reasonElementOnlyCopy"],
+  ["dhw_request_cleared", "overviewDhw.reasonDhwCleared", "overviewDhw.reasonDhwClearedCopy"],
 ].map(([key, labelKey, summaryKey]) => [key, { labelKey, summaryKey, checks: [] }]));
 const TYPES = new Set([
   "incident_start", "incident_clear", "incident_acknowledged", "hp_availability_change",

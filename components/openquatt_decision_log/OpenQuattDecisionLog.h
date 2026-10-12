@@ -124,6 +124,10 @@ enum ReasonCode : uint8_t {
   REASON_ROOM_DEMAND = 72,
   REASON_SETPOINT_RAISE = 73,
   REASON_FREQUENCY_CAP_BELOW_MINIMUM = 74,
+  // OpenQuatt FE: eigen bereik vanaf 200, zodat nieuwe upstream-codes niet botsen.
+  REASON_DHW_REQUEST = 200,
+  REASON_ELEMENT_ONLY = 201,
+  REASON_DHW_REQUEST_CLEARED = 202,
 };
 
 enum Severity : uint8_t {

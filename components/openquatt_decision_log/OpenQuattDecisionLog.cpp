@@ -1300,6 +1300,12 @@ const char* OpenQuattDecisionLog::reason_to_string_(uint8_t value) {
       return "hp_stop_unconfirmed";
     case REASON_HP_RECOVERY_WAIT:
       return "hp_recovery_wait";
+    case REASON_DHW_REQUEST:
+      return "dhw_request";
+    case REASON_ELEMENT_ONLY:
+      return "element_only";
+    case REASON_DHW_REQUEST_CLEARED:
+      return "dhw_request_cleared";
     case REASON_BOILER_FALLBACK:
       return "boiler_fallback";
     case REASON_FALLBACK_BLOCKED:

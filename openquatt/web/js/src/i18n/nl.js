@@ -4575,6 +4575,12 @@ export default {
     cm10: "CM10 · warm water",
     cm11: "CM11 · alleen element",
     strategy: "Warm water",
+    reasonDhwRequest: "Warmwatervraag",
+    reasonDhwRequestCopy: "De tank vroeg om warmte; de klep staat naar de boiler en de warmtepomp verwarmt de tank (CM10).",
+    reasonElementOnly: "Alleen element",
+    reasonElementOnlyCopy: "Alleen element staat aan: de warmtepompen blijven uit en het element houdt de tank warm (CM11).",
+    reasonDhwCleared: "Warmwatervraag afgerond",
+    reasonDhwClearedCopy: "De warmwatercyclus is klaar of gestopt; de regeling gaat terug naar de normale stand.",
   },
   overview: {
     monitoringTitle: "Installatiebewaking",

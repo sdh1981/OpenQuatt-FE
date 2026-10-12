@@ -65,3 +65,11 @@ test("a declined confirmation changes nothing", () => {
   });
   assert.equal(handleDhwAction("something-else", button), false);
 });
+
+test("CM10/CM11 decision log reasons have their own label", async () => {
+  const { getControlReplayIncidentReasonMeta } = await import("../js/src/features/control-replay-incidents.js");
+  for (const code of ["dhw_request", "element_only", "dhw_request_cleared"]) {
+    const meta = getControlReplayIncidentReasonMeta(code);
+    assert.ok(meta, `${code} has a meta entry`);
+  }
+});
