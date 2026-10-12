@@ -151,6 +151,8 @@ Belangrijke instellingen:
 
 `Flow Setpoint` geldt voor verwarmen en normaal automatisch bedrijf. `Cooling Flow Setpoint` geldt alleen tijdens koelen, zodat koeling een eigen hydraulisch werkpunt kan hebben zonder de verwarmingsflow te veranderen.
 
+De standaard minimumflow voor compressorbedrijf is 400 L/h; precies 400 L/h voldoet aan de flowgrens. Een bestaand opgeslagen flowsetpoint onder 400 L/h wordt bij een update niet automatisch verhoogd en kan daardoor warmteproductie blokkeren. Controleer beide flowsetpoints en de werkelijk gemeten flow.
+
 CM98 gebruikt een vaste pompregeling van iPWM 800. AUTO start met de laatst bekende goede iPWM voor verwarmen of koelen en valt bij een ongeldige waarde terug op iPWM 440.
 
 Gebruik deze groep voorzichtig. Bij verkeerde bronwaarden of hydraulische problemen maak je hier snel meer ruis dan winst.
@@ -261,6 +263,10 @@ Alleen als het probleem daar lijkt te zitten:
 - power cap;
 - gedrag rond stille uren of begrenzing.
 
+### Voor het compressorprofiel
+
+`Compressor Level Profile` toont `V2 F0-F10` zodra een V2 old model is herkend en beide frequentietabellen geldig zijn ingelezen. Dit model heeft fysieke compressorstanden F0 tot en met F10. Een V2 new model kan met geldige uitbreidingstabellen `V2 F0-F20` tonen, of een afzonderlijk verwarmings- of koelprofiel. `Unknown / F0-F10 safe` betekent dat nog geen bevestigd V2-profiel met geldige tabellen beschikbaar is; ook V1 en V1.5 gebruiken dit bestaande label. Het profiel is diagnostiek; de standbegrenzing en frequentiemapping gebruiken de ingelezen tabellen.
+
 ### Voor compressorpendelen
 
 OpenQuatt geeft per compressor maximaal zes startopdrachten per voortschrijdend uur vrij. Een zevende start wacht totdat de oudste van die zes starts een uur geleden is, én alle bestaande startvoorwaarden zijn vrijgegeven. De minimale draaitijd (standaard 300 s) en minimale uit-tijd (standaard 240 s) blijven gelden. Verdwijnt de vraag tijdens het wachten, dan volgt geen start. De begrenzer geldt ook bij handmatige HP-bediening; stops blijven mogelijk.
@@ -312,7 +318,7 @@ Als je te veel tegelijk wijzigt, wordt het juist moeilijker om te begrijpen wat 
 ## Verder lezen
 
 - Web-app gebruiken: [Web-app gebruiken](web-app.md)
-- [Verwarmen en koelen uitgelegd](verwarmen-en-koelen.md)
+- [Verwarmen en comfort](dagelijks/verwarmen.md)
 - [Power House](power-house.md)
 - [Water Temperature Control](water-temperature-control.md)
 - [Regelgedrag van OpenQuatt](regelgedrag-van-openquatt.md)

@@ -13,7 +13,7 @@
 device_name: "openquatt"                              # Internal ESPHome device ID / hostname base.
 friendly_name: OpenQuatt                              # Display name in Home Assistant / UI.
 project_name: "openquatt.openquatt"                   # ESPHome project identifier shown in firmware metadata.
-project_version: "v0.53.0"                            # ESPHome project version shown in firmware metadata.
+project_version: "v0.54.1"                            # ESPHome project version shown in firmware metadata.
 release_channel: "main"                               # Firmware release channel shown in diagnostics (`main` or `dev`).
 oq_firmware_initial_check_delay_s: "300"              # Stable-network delay before the first automatic manifest check [s].
 oq_firmware_periodic_check_interval: "4h"              # Automatic manifest-check cadence after the initial boot window.
@@ -144,7 +144,7 @@ oq_electrical_current_limit_min_a: "6.0"              # Lowest configurable inst
 oq_power_measurement_stale_s: "60"                    # Maximum age of voltage/current measurements used by the limiter [s].
 oq_mains_voltage_v: "230.0"                           # Nominal mains voltage used to convert current limits to power thresholds [V].
 oq_cm_prepost_s: "30"                                 # Duration of CM1 pre/postflow window [s].
-oq_cm_min_flow_lph: "250.0"                           # Minimum valid flow for compressor operation [L/h].
+oq_cm_min_flow_lph: "400.0"                           # Minimum valid flow for compressor operation [L/h].
 oq_cm_flow_fault_s: "60"                              # Low-flow duration before fault becomes active [s].
 oq_cm_flow_recover_s: "30"                            # Flow recovery duration before fault is cleared [s].
 oq_cm2_idle_exit_s: "90"                              # Exit CM2 if both HPs are idle for this duration while demand remains > 0 [s].
@@ -182,7 +182,7 @@ oq_water_supply_temp_local_cic_hold_s: "15"            # Hold Local/CIC supply t
 oq_hp_water_temp_stale_s: "60"                        # Maximum age for a heat-pump water temperature used as supply fallback [s].
 oq_temp_guard_delta_c: "0.5"                          # Minimum valid margin between T0 and Tc in the house model [°C].
 oq_outside_temp_stale_s: "1200"                       # Ignore a local outdoor reading when it stays frozen while the same HP still shows fresh activity [s].
-oq_ph_run_extension_restart_hysteresis_c: "0.2"       # Warm-restart hysteresis below the comfort stop for #608 run extension [K].
+oq_ph_run_extension_restart_hysteresis_c: "0.2"       # Initial cooldown for the persistent run-extension restart setting [K].
 
 # ----------------------------
 # HEAT CONTROL
@@ -231,7 +231,7 @@ oq_flow_pwm_max: "850"                                # Upper pump iPWM bound du
 oq_flow_autotune_min_step: "5"                        # Minimum iPWM step size for the step test.
 oq_flow_autotune_ss_window: "3"                       # Rolling-window size for steady-state estimation [samples].
 oq_flow_autotune_settle_s: "30"                       # Minimum settle time on baseline PWM before applying the step [s].
-oq_flow_autotune_stable_band_lph: "12.0"              # Max flow spread in baseline window to qualify as stable [L/h].
+oq_flow_autotune_stable_band_lph: "30.0"              # Max flow spread in baseline window to qualify as stable [L/h].
 oq_flow_autotune_tau_fallback_s: "30.0"               # Fallback time constant when t63 is invalid [s].
 oq_flow_autotune_lambda_min_s: "10.0"                 # Minimum IMC lambda for conservative PI tuning [s].
 

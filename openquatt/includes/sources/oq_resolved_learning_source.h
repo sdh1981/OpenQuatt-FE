@@ -66,6 +66,7 @@ struct ResolvedLearningSource {
   SourceConfigurationKey configuration;
   uint32_t configuration_generation = 0;
   bool valid = false;
+  bool invalid_received = false;
   LearningSourceProvenance provenance = LearningSourceProvenance::UNKNOWN;
 };
 
@@ -92,6 +93,10 @@ class SourceConfigurationGeneration {
   }
 
   uint32_t observe_resolution(const ResolvedLearningSource& source) {
+    // Temporary absence is not a route change. Configuration changes are still
+    // observed separately; a different valid route on recovery advances this
+    // generation before learning can integrate its first value.
+    if (!source.valid) return this->generation_;
     // The outdoor resolver reports zero while every relevant pump is stopped.
     // This is a normal operating phase of the selected flow source, not a new
     // source. Keep its last running identity so a real route change on restart
@@ -195,13 +200,14 @@ inline ResolvedLearningSource physical_source(LearningSourceRoute route, const R
 inline ResolvedLearningSource selected_source(
     float value, bool selected_valid, LearningSourceRoute route, uint32_t configuration_generation,
     LearningSourceProvenance provenance = LearningSourceProvenance::SELECTED_VALUE,
-    const SourceConfigurationKey& configuration = {}) {
+    const SourceConfigurationKey& configuration = {}, bool invalid_received = false) {
   ResolvedLearningSource result;
   result.value = selected_valid && isfinite(value) ? value : NAN;
   result.route = route;
   result.configuration = configuration;
   result.configuration_generation = configuration_generation;
   result.valid = selected_valid && isfinite(value);
+  result.invalid_received = invalid_received;
   result.provenance = result.valid ? provenance : LearningSourceProvenance::UNKNOWN;
   return result;
 }

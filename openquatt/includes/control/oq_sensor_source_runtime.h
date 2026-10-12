@@ -9,6 +9,7 @@
 #include "oq_input_source_logic.h"
 #include "oq_schedule_runtime.h"
 #include "../sources/oq_resolved_learning_source.h"
+#include "../sources/oq_source_receipt_runtime.h"
 #include "oq_supply_calibration_logic.h"
 #include "oq_supply_hold_logic.h"
 
@@ -147,7 +148,6 @@ class Runtime {
     const std::string option =
         id(water_supply_source).has_state() ? id(water_supply_source).current_option() : std::string();
     const auto source = supply_source(option, ha_entity_id);
-    migrate_legacy_calibration();
     if (selected_supply_hold_.has_value() && !selected_supply_hold_.matches_source(source)) clear_supply_hold();
 
     bool calibration_required = false;
@@ -220,6 +220,10 @@ class Runtime {
     input.selected = parse_source(id(flow_source).current_option());
     input.cic = sample(cic_feed_valid(), id(flow_rate_cic));
     input.aggregate = sample(true, id(flow_rate_hp_avg));
+    // A template may publish NaN before its physical sources have ever arrived.
+    // Keep that absence separate from an actually received invalid value.
+    bool primary_flow_invalid = oq_sources::hp1.flow.invalid_value_received();
+    bool primary_flow_present = isfinite(id(hp1_flow).state);
     input.q_hardware = OQ_HARDWARE_HEATPUMP_CONTROLLER_Q;
     input.duo = OQ_TOPOLOGY_DUO;
 #if OQ_HARDWARE_HEATPUMP_CONTROLLER_Q
@@ -227,15 +231,26 @@ class Runtime {
     input.controller_mode = controller_flow_mode_();
     input.hp_generation_v1 = hp1_uses_controller;
     input.controller = sample(true, id(flow_rate_controller));
+    input.controller.invalid_received = oq_sources::controller_flow.invalid_value_received();
+    if (hp1_uses_controller) {
+      primary_flow_invalid = oq_sources::controller_flow.invalid_value_received();
+      primary_flow_present = isfinite(id(flow_rate_controller).state);
+    }
 #endif
     const oq_flow::PumpRelayState hp1{id(hp1_is_online) && id(hp1_pump_relay).has_state(), id(hp1_pump_relay).state};
 #if OQ_TOPOLOGY_DUO
     const oq_flow::PumpRelayState hp2{id(hp2_is_online) && id(hp2_pump_relay).has_state(), id(hp2_pump_relay).state};
     input.hp1 = sample(true, id(hp1_flow));
     input.hp2 = sample(true, id(hp2_flow));
+    input.hp1.invalid_received = oq_sources::hp1.flow.invalid_value_received();
+    input.hp2.invalid_received = oq_sources::hp2.flow.invalid_value_received();
+    input.aggregate.invalid_received =
+        ((!input.aggregate.valid || primary_flow_present) && primary_flow_invalid) ||
+        ((!input.aggregate.valid || isfinite(id(hp2_flow).state)) && oq_sources::hp2.flow.invalid_value_received());
     input.outdoor_mode = outdoor_flow_mode_();
 #else
     const oq_flow::PumpRelayState hp2{};
+    input.aggregate.invalid_received = primary_flow_invalid;
 #endif
     input.all_relevant_pumps_stopped = oq_flow::all_relevant_pumps_stopped(OQ_TOPOLOGY_DUO, hp1, hp2);
     return oq_input_source::select_flow(input);
@@ -267,6 +282,12 @@ class Runtime {
     }
     oq_input_source::NumericSources sources;
     sources.outdoor = sample(true, id(outside_temp_hp_avg));
+#if OQ_TOPOLOGY_DUO
+    sources.outdoor.invalid_received =
+        oq_sources::local_outside_selection.invalid_received(oq_sources::hp1.outside, oq_sources::hp2.outside);
+#else
+    sources.outdoor.invalid_received = oq_sources::local_outside_selection.invalid_received(oq_sources::hp1.outside);
+#endif
     sources.ha =
         sample(ha_live_valid(id(outside_temp_valid_ha), id(outside_temp_ha), now_ms, ha_stale_s), id(outside_temp_ha));
     sources.api = sample(api_valid(id(api_input_outside_temperature_valid), id(api_input_outside_temperature)),
@@ -581,19 +602,23 @@ class Runtime {
                                                          bool setpoint, uint32_t generation) {
     return oq_sources::selected_source(selected.value, selected.valid, room_route(selected.route, setpoint), generation,
                                        selected.held ? oq_sources::LearningSourceProvenance::HELD
-                                                     : oq_sources::LearningSourceProvenance::SELECTED_VALUE);
+                                                     : oq_sources::LearningSourceProvenance::SELECTED_VALUE,
+                                       {}, selected.invalid_received);
   }
 
   static oq_sources::ResolvedLearningSource resolve_outside(const oq_input_source::NumericSelection& selected,
                                                             uint32_t generation) {
     return oq_sources::selected_source(selected.value, selected.valid, outside_route(selected.route), generation,
                                        selected.held ? oq_sources::LearningSourceProvenance::HELD
-                                                     : oq_sources::LearningSourceProvenance::SELECTED_VALUE);
+                                                     : oq_sources::LearningSourceProvenance::SELECTED_VALUE,
+                                       {}, selected.invalid_received);
   }
 
   static oq_sources::ResolvedLearningSource resolve_flow(const oq_input_source::FlowSelection& selected,
                                                          uint32_t generation) {
-    return oq_sources::selected_source(selected.value, selected.valid, flow_route(selected.route), generation);
+    return oq_sources::selected_source(selected.value, selected.valid, flow_route(selected.route), generation,
+                                       oq_sources::LearningSourceProvenance::SELECTED_VALUE, {},
+                                       selected.invalid_received);
   }
 
   template <typename T>
@@ -702,39 +727,6 @@ class Runtime {
         return oq_supply_calibration::load_record(id(oq_water_supply_temp_calibration_ha_input_record));
       default:
         return {};
-    }
-  }
-
-  static void migrate_legacy_calibration() {
-    if (!id(water_supply_temp_calibration_offset).has_state()) return;
-    const int32_t code = id(oq_water_supply_temp_calibration_source_code);
-    switch (code) {
-      case oq_supply_calibration::SOURCE_LOCAL_PT1000:
-        oq_supply_calibration::migrate_legacy_record(id(oq_water_supply_temp_calibration_pt1000_record), code,
-                                                     id(oq_water_supply_temp_calibration_source_fingerprint),
-                                                     id(oq_water_supply_temp_calibration_checksum),
-                                                     id(water_supply_temp_calibration_offset).state);
-        break;
-      case oq_supply_calibration::SOURCE_LOCAL_DS18B20:
-        oq_supply_calibration::migrate_legacy_record(id(oq_water_supply_temp_calibration_ds18b20_record), code,
-                                                     id(oq_water_supply_temp_calibration_source_fingerprint),
-                                                     id(oq_water_supply_temp_calibration_checksum),
-                                                     id(water_supply_temp_calibration_offset).state);
-        break;
-      case oq_supply_calibration::SOURCE_CIC:
-        oq_supply_calibration::migrate_legacy_record(id(oq_water_supply_temp_calibration_cic_record), code,
-                                                     id(oq_water_supply_temp_calibration_source_fingerprint),
-                                                     id(oq_water_supply_temp_calibration_checksum),
-                                                     id(water_supply_temp_calibration_offset).state);
-        break;
-      case oq_supply_calibration::SOURCE_HA_INPUT:
-        oq_supply_calibration::migrate_legacy_record(id(oq_water_supply_temp_calibration_ha_input_record), code,
-                                                     id(oq_water_supply_temp_calibration_source_fingerprint),
-                                                     id(oq_water_supply_temp_calibration_checksum),
-                                                     id(water_supply_temp_calibration_offset).state);
-        break;
-      default:
-        break;
     }
   }
 

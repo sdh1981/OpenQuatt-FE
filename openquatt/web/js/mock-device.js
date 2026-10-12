@@ -1969,6 +1969,7 @@
     setEntity("sensor", "Lifetime energiehistorie grootte", { value: state.energyHistoryStoredKiB, uom: "kB" });
     setEntity("sensor", "Lifetime energiehistorie schrijfacties", { value: state.energyHistoryWrites });
     setEntity("update", "Firmware Update", {
+      manifest_revision: 0,
       state: "up_to_date",
       value: "up_to_date",
       current_version: MOCK_DEV_VERSION,
@@ -2008,6 +2009,7 @@
     setEntity("binary_sensor", "Usage statistics choice configured", { value: false, state: false });
     setEntity("switch", "Performance model validation", { value: false, state: false });
     setEntity("binary_sensor", "Performance model validation choice configured", { value: false, state: false });
+    setEntity("binary_sensor", "Performance model validation prompt handled", { value: false, state: false });
     setEntity("text_sensor", "Usage statistics installation ID", { value: "7df1c1f8-fc47-4ac8-b0d7-94d8c42d772f", state: "7df1c1f8-fc47-4ac8-b0d7-94d8c42d772f" });
     setEntity("text", "CIC - Feed URL", { value: "http://192.168.2.117:8080/beta/feed/data.json", state: "http://192.168.2.117:8080/beta/feed/data.json" });
     setEntity("switch", "OpenTherm Enabled", { value: false, state: false });
@@ -2262,6 +2264,7 @@
       ["Power House demand rise time", 8, 2, 20, 1, "min"],
       ["Power House demand fall time", 3, 1, 10, 1, "min"],
       ["Power House run extension stop margin", 0.5, 0.1, 1, 0.1, "°C"],
+      ["Power House run extension restart cooldown", 0.2, 0.1, 3, 0.1, "°C"],
       ["Cooling Minimum Supply Temp", 18, 5, 24, 0.5, "°C"],
       ["Cooling Demand Max", 4, 1, 10, 1, "step"],
       ["Cooling Restart Delta", 1.0, 0, 5, 0.1, "°C"],
@@ -4033,6 +4036,7 @@
       const currentVersion = String(getEntity("text_sensor", "OpenQuatt Version")?.value || MOCK_STABLE_VERSION);
       const latestVersion = value === "main" ? MOCK_STABLE_VERSION : MOCK_DEV_VERSION;
       if (updateEntity) {
+        updateEntity.manifest_revision = ((updateEntity.manifest_revision || 0) + 1) >>> 0;
         updateEntity.current_version = currentVersion;
         updateEntity.latest_version = latestVersion;
         updateEntity.release_url = getMockReleaseUrl(value);
@@ -4065,6 +4069,7 @@
         : state.installation;
       const targetLabel = `Heatpump Controller Q ${targetTopology === "duo" ? "Duo" : "Single"} ${targetConnection === "eth" ? "Ethernet" : "Wi-Fi"}`;
       if (updateEntity) {
+        updateEntity.manifest_revision = ((updateEntity.manifest_revision || 0) + 1) >>> 0;
         updateEntity.current_version = currentVersion;
         updateEntity.latest_version = latestVersion;
         updateEntity.release_url = getMockReleaseUrl(channel);
@@ -4161,6 +4166,7 @@
       return;
     }
     if (name === "Performance model validation") {
+      setEntity("binary_sensor", "Performance model validation prompt handled", { value: true, state: true });
       setEntity("binary_sensor", "Performance model validation choice configured", { value: true, state: true });
     }
     if (name === "Boiler assist enabled" && !enabled) {
@@ -5086,6 +5092,7 @@
       setText("text_sensor", "Firmware Update Status", "Idle");
       setNumber("Firmware Update Progress", 0, "%");
       if (updateEntity) {
+        updateEntity.manifest_revision = ((updateEntity.manifest_revision || 0) + 1) >>> 0;
         updateEntity.current_version = currentVersion;
         updateEntity.latest_version = latestVersion;
         updateEntity.release_url = getMockReleaseUrl(channel);
@@ -5814,12 +5821,17 @@
     const invalidReasons = [];
     if (!controlMode.startsWith("CM2")) invalidReasons.push("control_mode");
     if (state.boiler !== "off") invalidReasons.push("boiler_heat");
-    const ready = invalidReasons.length === 0 && state.houseLearning.records >= 24;
+    const legacyCount = Math.min(state.houseLearning.records, 4);
+    const dailyCount = state.houseLearning.records - legacyCount;
+    const ready = invalidReasons.length === 0 && dailyCount >= 24;
     return {
       schema: 1, mode: "passive", enabled, storage_ready: true,
       status: enabled ? "collecting" : "paused",
       source_status: invalidReasons.length ? "blocked" : "ready",
       invalid_reasons: invalidReasons, records: state.houseLearning.records,
+      daily_record_count: dailyCount, legacy_record_count: legacyCount, reference_room_c: 20,
+      collection: { batch_active: enabled && state.boiler === "off", batch_elapsed_s: enabled ? 9200 : 0, batch_target_s: 86400,
+        batch_last_rejection: null, thermal_active: enabled && !invalidReasons.length, thermal_elapsed_s: enabled ? 420 : 0, thermal_target_s: 1800, thermal_intervals: state.houseLearning.rlsSamples },
       batch_status: ready ? "ready" : "collecting", batch_advice_ready: ready,
       advice_ready: false, auto_apply_allowed: false,
       h_batch: ready ? 186.4 : null, t0_batch: ready ? 16.8 : null,
@@ -5843,14 +5855,17 @@
 
   function getHouseLearningExportPayload() {
     const now = Math.floor(Date.now() / 1000);
-    const batchDurationS = 4 * 3600;
+    const legacyCount = Math.min(state.houseLearning.records, 4);
     return {
-      schema: 1, mode: "passive", auto_apply_allowed: false,
-      record_columns: ["start_epoch_s", "end_epoch_s", "mean_room_c", "mean_setpoint_c", "mean_outside_c", "mean_heat_w", "room_trend_k_per_h", "context_revision"],
-      records: Array.from({ length: Math.min(state.houseLearning.records, 12) }, (_item, index) => {
-        const end = now - ((12 - index) * (6 * 3600));
-        const outside = 2.5 + (index * 1.05);
-        return [end - batchDurationS, end, Number((20.3 + index * 0.02).toFixed(2)), 20.5, Number(outside.toFixed(1)), Math.round(186.4 * (16.8 - outside)), 0.01, 8];
+      schema: 1, mode: "passive", auto_apply_allowed: false, reference_room_c: 20,
+      record_columns: ["start_epoch_s", "end_epoch_s", "mean_room_c", "mean_setpoint_c", "mean_outside_c", "mean_heat_w", "room_trend_k_per_h", "context_revision", "effective_outside_c", "record_kind"],
+      records: Array.from({ length: state.houseLearning.records }, (_item, index) => {
+        const end = now - ((state.houseLearning.records - index) * 86400);
+        const outside = 2.5 + (index * 0.35);
+        const room = Number((20.3 + index * 0.02).toFixed(2));
+        const effectiveOutside = Number((outside - (room - 20)).toFixed(2));
+        const kind = index < legacyCount ? 0 : 1;
+        return [end - (kind ? 86400 : 14400), end, room, 20.5, Number(outside.toFixed(2)), Math.round(186.4 * (16.8 - effectiveOutside)), 0.01, 8, effectiveOutside, kind];
       }),
       diagnostic_columns: [], diagnostics: [],
     };
