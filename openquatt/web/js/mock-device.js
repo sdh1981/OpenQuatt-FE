@@ -2545,6 +2545,12 @@
     setEntity("switch", "DHW boost now", { state: false, value: false });
     setEntity("switch", "DHW source legionella force", { state: false, value: false });
     setEntity("switch", "DHW lockout", { state: false, value: false });
+    setEntity("switch", "DHW Test Valve", { state: false, value: false });
+    setEntity("switch", "DHW Test Element", { state: false, value: false });
+    setEntity("text_sensor", "DHW Test Valve Status", { state: "Off", value: "Off" });
+    setEntity("text_sensor", "DHW Test Element Status", { state: "Off", value: "Off" });
+    setEntity("binary_sensor", "DHW Valve Feedback", { value: true });
+    setEntity("text_sensor", "DHW 1-Wire adressen", { state: "0x5000000048509928, 0x6700000022860328", value: "0x5000000048509928, 0x6700000022860328" });
 
     applyCoolingDewPointSourceSelection();
 

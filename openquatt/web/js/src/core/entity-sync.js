@@ -1,4 +1,4 @@
-import { FREQUENCY_MINIMUM_KEYS } from "./config.js";
+import { DHW_BENCH_KEYS, FREQUENCY_MINIMUM_KEYS } from "./config.js";
 import { patchFrequencyLimitWarnings } from "../features/frequency-limits.js";
 import { t } from "../i18n/index.js";
 import { getSetupCompleteState, isTrendHistoryEnabled, renderAppSummary } from "./app-shared.js";
@@ -258,6 +258,7 @@ import { fetchWithTimeout } from "./browser-utils.js";
       "maxWater",
     ],
     service: [
+      ...DHW_BENCH_KEYS,
       ...INSTALLATION_MONITORING_STATE_KEYS,
       ...COMMISSIONING_STATE_KEYS,
       "hpGeneration",

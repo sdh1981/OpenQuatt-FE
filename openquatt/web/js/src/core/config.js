@@ -689,6 +689,12 @@
     ["dhwBoostNow", DOMAIN_SWITCH, "DHW boost now"],
     ["dhwLegionellaForce", DOMAIN_SWITCH, "DHW source legionella force"],
     ["dhwClearFault", DOMAIN_BUTTON, "DHW clear fault"],
+    ["dhwTestValve", DOMAIN_SWITCH, "DHW Test Valve"],
+    ["dhwTestElement", DOMAIN_SWITCH, "DHW Test Element"],
+    ["dhwTestValveStatus", DOMAIN_TEXT_SENSOR, "DHW Test Valve Status"],
+    ["dhwTestElementStatus", DOMAIN_TEXT_SENSOR, "DHW Test Element Status"],
+    ["dhwValveFeedback", DOMAIN_BINARY_SENSOR, "DHW Valve Feedback"],
+    ["dhwOneWireAddresses", DOMAIN_TEXT_SENSOR, "DHW 1-Wire adressen"],
     ["dhwLegionellaLastRun", DOMAIN_TEXT_SENSOR, "DHW legionella laatste run"],
     ["dhwLegionellaNextRun", DOMAIN_TEXT_SENSOR, "DHW legionella volgende run"],
     ["dhwUa", DOMAIN_SENSOR, "DHW tank standby loss"],
@@ -1758,6 +1764,18 @@
     "dhwLegionellaForce",
     "dhwLockout",
     "dhwClearFault",
+  ];
+  // OpenQuatt FE: bankproef onder Service. Bewust niet in de back-up.
+  export const DHW_BENCH_KEYS = [
+    "dhwState",
+    "dhwTestValve",
+    "dhwTestElement",
+    "dhwTestValveStatus",
+    "dhwTestElementStatus",
+    "dhwValveFeedback",
+    "dhwValvePosition",
+    "dhwElementActive",
+    "dhwOneWireAddresses",
   ];
   export const OVERVIEW_KEYS = [
     "strategy",
