@@ -98,6 +98,7 @@
     ["houseLearningReset", DOMAIN_BUTTON, "Power House Learning Reset"],
     ["performanceTelemetryEnabled", DOMAIN_SWITCH, "Performance model validation"],
     ["performanceTelemetryChoiceConfigured", DOMAIN_BINARY_SENSOR, "Performance model validation choice configured"],
+    ["performanceTelemetryPromptHandled", DOMAIN_BINARY_SENSOR, "Performance model validation prompt handled"],
     ["hpGeneration", DOMAIN_SELECT, "Quatt Hybrid version", false],
     ["electricalCurrentLimit", DOMAIN_NUMBER, "Electrical current limit"],
     ["strategy", DOMAIN_SELECT, "Heating Control Mode", false],
@@ -570,6 +571,7 @@
     ["phDemandFallTime", DOMAIN_NUMBER, "Power House demand fall time", false],
     ["phRunExtension", DOMAIN_SWITCH, "Power House run extension"],
     ["phRunExtensionStopMargin", DOMAIN_NUMBER, "Power House run extension stop margin"],
+    ["phRunExtensionRestartCooldown", DOMAIN_NUMBER, "Power House run extension restart cooldown"],
     ["phRunExtensionStatus", DOMAIN_TEXT_SENSOR, "Power House run extension status"],
     ["lowLoadDynamicThresholds", DOMAIN_TEXT_SENSOR, "Low-load dynamic thresholds"],
     ["lowLoadDynamicOffFactor", DOMAIN_NUMBER, "Low-load dynamic OFF factor"],
@@ -900,6 +902,7 @@
   ];
 
   export const POWER_HOUSE_KEYS = [
+    "roomSetpoint",
     "housePower",
     "houseColdTemp",
     "houseOutdoorMax",
@@ -911,6 +914,7 @@
     "phDemandFallTime",
     "phRunExtension",
     "phRunExtensionStopMargin",
+    "phRunExtensionRestartCooldown",
     "phRunExtensionStatus",
   ];
   export const FREQUENCY_CAP_KEYS = ["dayMaxHz", "silentMaxHz"];
@@ -1732,6 +1736,9 @@
   export const FIRMWARE_MODAL_KEYS = [...FIRMWARE_ENTITY_KEYS, ...FIRMWARE_TEST_ENTITY_KEYS, ...FIRMWARE_TEST_LEGACY_ENTITY_KEYS, "installFirmwareUpdateTarget", "projectVersionText", "releaseChannelText", "installationTopology", "hardwareProfileText", "connectionText", "preferredConnection"];
   export const TOPOLOGY_HINT_KEYS = ["hp2ExcludeMinHz", "hp2Power", "hp2WaterOut"];
   export const HEADER_ENTITY_KEYS = [
+    "performanceTelemetryEnabled",
+    "performanceTelemetryChoiceConfigured",
+    "performanceTelemetryPromptHandled",
     // OpenQuatt FE: overal geladen, zodat isFullElectric() op elke pagina klopt.
     "dhwState",
     "status",
@@ -2384,6 +2391,7 @@
         "phDemandFallTime",
         "phRunExtension",
         "phRunExtensionStopMargin",
+        "phRunExtensionRestartCooldown",
       ],
     },
     {

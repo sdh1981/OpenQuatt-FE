@@ -21,6 +21,9 @@ const cssSources = resolveCssSources(webDir);
 
 const allowedBareImports = new Set(["virtual:embedded-assets"]);
 const boundaryAllowedEdges = new Set([
+  // The entity event/sync owners drive invitation actions and reconcile its live controller status.
+  "core/entity-actions.js -> features/performance-telemetry-prompt.js",
+  "core/entity-sync.js -> features/performance-telemetry-prompt.js",
   "core/entity-actions.js -> features/debug-recording.js",
   // OpenQuatt FE: knoppen op de warmwaterkaart.
   "core/entity-actions.js -> features/dhw-actions.js",

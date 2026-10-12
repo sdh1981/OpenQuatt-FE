@@ -60,7 +60,7 @@ Upstream leest met zijn eigen DS18B20 (`index: 0`) op deze bus een van de tankse
 
 ```bash
 git fetch upstream --tags
-git merge v0.54.0
+git merge v0.55.0
 ```
 
 Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo_fe.yaml` of de id's die FE vervangt of uitbreidt nog bestaan: `boiler_relay_out`, `controller_aux_relay_out`, `water_supply_temp_ds18b20`, `oq_local_temp_bus`, `oq_aux_heat_source_present` en `oq_local_supply_temp_source`. De haken in het regelhart volgen in fase 4 (`fe/port-plan.md` §4, stap 4).
@@ -80,6 +80,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 5c | Bankproef warm water onder Service (R1, R2, status, klepstand, 1-Wire-adressen). | fe.9 |
 | 5d-1 | Decision log: eigen redenen voor CM10 (`dhw_request`), CM11 (`element_only`) en terug (`dhw_request_cleared`), codes 200–202. | fe.10 |
 | 5d-2 | HA-bestanden in `fe/dashboard/`: package, tankkaarten en de view "Warm water". | geen firmware |
+| — | Upstream-merge v0.53.0 → v0.54.1 | fe.11 |
 | 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
 
 ## Haken in upstream-bestanden

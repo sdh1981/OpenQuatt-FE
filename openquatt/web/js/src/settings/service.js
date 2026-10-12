@@ -1,4 +1,4 @@
-import { getEntityNumericValue, getEntityStateText, hasEntity, isEntityActive } from "../core/app-shared.js";
+import { getBinaryEntityState, getEntityNumericValue, getEntityStateText, hasEntity, isEntityActive } from "../core/app-shared.js";
 import { getEntityValue } from "../core/entity-store.js";
 import { formatFailures } from "../core/failure-format.js";
 import { state } from "../core/state.js";
@@ -45,6 +45,7 @@ import { formatNumber, t } from "../i18n/index.js";
       || normalized.includes("COOLDOWN")
       || normalized.includes("RUNNING")
       || normalized.includes("VALIDATING")
+      || normalized.includes("VALIDATION_RETRY")
       || normalized.includes("STARTED")
       || normalized.includes("RECOVER")
       || normalized.includes("PHASE")
@@ -65,6 +66,73 @@ import { formatNumber, t } from "../i18n/index.js";
       || normalized.includes("APPLIED")
       || normalized.includes("CONFIRM_REQUIRED")
       || normalized.includes("REFUSED");
+  }
+
+  export function getAirPurgeTerminalStatus(status) {
+    const raw = String(status || "").trim();
+    const upper = raw.toUpperCase();
+    if (upper === "DONE" || upper.startsWith("DONE:")) return t("settingsService.phaseDone");
+    if (upper === "ABORTED" || upper === "ABORT") return t("settingsService.phaseAborted");
+    if (!upper.startsWith("FAILED") && !upper.startsWith("REFUSED") && !upper.startsWith("ABORT:")) return "";
+    const label = upper.startsWith("ABORT:")
+      ? t("settingsService.phaseAborted")
+      : t(upper.startsWith("FAILED") ? "settingsService.purgeFailed" : "settingsService.purgeRefused");
+    const reason = raw.includes(":") ? raw.slice(raw.indexOf(":") + 1).trim() : "";
+    const reasons = {
+      "NO FLOW DETECTED": t("settingsService.purgeNoFlow"),
+      "WATER TEMPERATURE HARD TRIP": t("settingsService.purgeTemperatureTrip"),
+      "BOILER ACTIVE": t("settingsService.purgeBoilerActive"),
+      "HEAT PUMP ACTIVE": t("settingsService.purgeHeatPumpActive"),
+      "MISSING START TIME": t("settingsService.purgeMissingStartTime"),
+      "NOT CM100": t("settingsService.purgeNotCm100"),
+      "BUSY": t("settingsService.purgeBusy"),
+    };
+    return reason ? `${label}: ${reasons[reason.toUpperCase()] || reason}` : label;
+  }
+
+  function getAutotuneGainValue(key) {
+    const raw = getEntityValue(key);
+    return !hasEntity(key) || raw == null || String(raw).trim() === ""
+      ? "—"
+      : formatNumber(getEntityNumericValue(key), { maximumFractionDigits: 5 });
+  }
+
+  export function getAutotuneTerminalStatus(status) {
+    const raw = String(status || "").trim();
+    const upper = raw.toUpperCase();
+    if (upper === "ABORTED" || upper === "ABORT") return t("settingsService.phaseAborted");
+    if (!/^(ABORTED:|ABORT:|FAILED|REFUSED|APPLY_FAILED)/.test(upper)) return "";
+    const label = upper.startsWith("REFUSED")
+      ? t("settingsService.autotuneRefused")
+      : upper.startsWith("ABORT")
+        ? t("settingsService.phaseAborted")
+        : t("settingsService.autotuneFailed");
+    const reason = raw.includes(":") ? raw.slice(raw.indexOf(":") + 1).trim() : "";
+    const reasons = {
+      "NO_STEADY_STATE": t("settingsService.autotuneNoSteadyState"),
+      "NO_BASELINE_FLOW": t("settingsService.autotuneNoBaselineFlow"),
+      "FLOW_INVALID": t("settingsService.autotuneFlowInvalid"),
+      "INVALID_GAIN": t("settingsService.autotuneInvalidGain"),
+      "NOT CM100": t("settingsService.autotuneNotCm100"),
+      "BUSY": t("settingsService.autotuneBusy"),
+      "STEP_HEADROOM": t("settingsService.autotuneStepHeadroom"),
+      "VALIDATION_BASELINE": t("settingsService.autotuneValidationBaseline"),
+      "INVALID_VALIDATION_STATE": t("settingsService.autotuneInvalidValidation"),
+      "INVALID_VALIDATION_STEP": t("settingsService.autotuneInvalidValidation"),
+    };
+    return reason ? `${label}: ${reasons[reason.toUpperCase()] || reason}` : label;
+  }
+
+  export function getAutotuneFailureAdvice(status) {
+    const upper = String(status || "").trim().toUpperCase();
+    if (upper.includes("NO_STEADY_STATE")) return t("settingsService.autotuneSteadyAdvice");
+    if (/NO_BASELINE_FLOW|FLOW_INVALID/.test(upper)) return t("settingsService.autotuneFlowAdvice");
+    if (/INVALID_GAIN|STEP_HEADROOM/.test(upper)) return t("settingsService.autotuneResponseAdvice");
+    if (upper.includes("VALIDATION_BASELINE")) return t("settingsService.autotuneValidationAdvice");
+    if (upper.includes("NOT CM100")) return t("settingsService.autotuneWait");
+    if (upper.includes("BUSY")) return t("settingsService.autotuneBusyAdvice");
+    if (upper === "ABORTED" || upper === "ABORT") return t("settingsService.autotuneStoppedAdvice");
+    return t("settingsService.autotuneFailureAdvice");
   }
 
   export function isBoilerTestResultReady(status) {
@@ -113,6 +181,7 @@ import { formatNumber, t } from "../i18n/index.js";
         { match: ["WAITING_FOR_FLOW", "SETTLING"], phase: t("settingsService.phaseFlowSettle"), percent: 26 },
         { match: ["STEP2"], phase: t("settingsService.phaseStep2"), percent: 56 },
         { match: ["STEP", "STEP1"], phase: t("settingsService.phaseStep1"), percent: 42 },
+        { match: ["VALIDATION_RECOVER", "VALIDATION_RETRY"], phase: t("settingsService.autotuneValidationRecover"), percent: 64 },
         { match: ["VALIDATING_SETTLING"], phase: t("settingsService.phaseValidating"), percent: 70 },
         { match: ["VALIDATING"], phase: t("settingsService.phaseValidating"), percent: 84 },
         { match: ["RECOVERING"], phase: t("settingsService.phaseRecovering"), percent: 92 },
@@ -125,7 +194,8 @@ import { formatNumber, t } from "../i18n/index.js";
         { match: ["PHASE2", "PULSE"], phase: t("settingsService.phasePulse"), percent: 62 },
         { match: ["PHASE3", "STABILIZE"], phase: t("settingsService.phaseStab"), percent: 90 },
         { match: ["DONE"], phase: t("settingsService.phaseDone"), percent: 100 },
-        { match: ["ABORTED", "FAILED", "ABORT"], phase: t("settingsService.phaseAborted"), percent: 100 },
+        { match: ["FAILED"], phase: t("settingsService.purgeFailed"), percent: 100 },
+        { match: ["ABORTED", "ABORT"], phase: t("settingsService.phaseAborted"), percent: 100 },
       ],
       "hp-water-calibration": [
         { match: ["REQUESTED", "STARTED", "REFUSED"], phase: t("settingsService.phasePrep"), percent: 8 },
@@ -478,7 +548,8 @@ import { formatNumber, t } from "../i18n/index.js";
       ? isEntityActive("auxHeatSourcePresent")
       : hasEntity("boilerCvAssistEnabled") && isEntityActive("boilerCvAssistEnabled");
     const cm100Status = getCommissioningStatusValue();
-    const cm100Active = isEntityActive("cm100Active");
+    const cm100ActiveState = getBinaryEntityState("cm100Active");
+    const cm100Active = cm100ActiveState === true;
     const cm100StatusUpper = String(cm100Status || "").trim().toUpperCase();
     const cm100WaitingForCm100 = isCommissioningTaskStatusWaitingForCm100(cm100Status);
     const cm100Ready = !cm100WaitingForCm100 && (cm100Active || cm100StatusUpper === "CM100 READY");
@@ -488,7 +559,12 @@ import { formatNumber, t } from "../i18n/index.js";
     const hp1ManualMaxLevel = getManualHpMaximumLevel("hp1CompressorLevelProfile", "manualHp1Mode");
     const hp2ManualMaxLevel = getManualHpMaximumLevel("hp2CompressorLevelProfile", "manualHp2Mode");
     const cm100StartDisabled = cm100Busy || cm100Ready || cm100WaitingForCm100;
-    const cm100StopDisabled = cm100Busy || !cm100Ready;
+    // Prefer the actual control mode over descriptive task/refusal status text.
+    const cm100Entity = state.entities.cm100Active;
+    const cm100ControlActive = cm100ActiveState === null ? cm100StatusUpper === "CM100 READY" : cm100Active;
+    const cm100ControlKnown = cm100ActiveState !== null || (!cm100Entity && ["IDLE", "CM100 STOPPED", "CM100 READY"].includes(String(getSettingsTextStatValue("commissioningStatus", "")).trim().toUpperCase()));
+    const cm100Starting = state.busyAction === "commissioningCm100Start" || cm100Pending || cm100WaitingForCm100;
+    const cm100Stopping = state.busyAction === "commissioningCm100Stop" || cm100StatusUpper === "ABORT REQUESTED";
     const boilerStatus = getStatusTextValue("boilerPowerTestStatus", "IDLE");
     const boilerProgress = getCommissioningProgressModel(boilerStatus, "boiler");
     const boilerActive = isEntityActive("boilerPowerTestActive");
@@ -535,7 +611,11 @@ import { formatNumber, t } from "../i18n/index.js";
     const airPurgeAvailable = Boolean(airPurgeControls || state.entities.airPurgeStatus || state.entities.airPurgeReturnToAuto);
     const airPurgeRemaining = getSettingsStatValue("airPurgeRemaining", { decimals: 0 });
     const airPurgePhaseCode = getEntityNumericValue("airPurgePhase");
-    const airPurgePhase = airPurgePhaseCode === 1
+    const airPurgePhase = state.busyAction === "airPurgeStart"
+      ? t("settingsService.phasePrep")
+      : airPurgeTaskTerminal
+      ? airPurgeProgress.phase
+      : airPurgePhaseCode === 1
       ? t("settingsService.phaseQuiet")
       : airPurgePhaseCode === 2
         ? t("settingsService.phasePulse")
@@ -574,14 +654,16 @@ import { formatNumber, t } from "../i18n/index.js";
       (hpWaterCalibrationActive || hpWaterCalibrationPending || hpWaterCalibrationTaskLocked || isCommissioningTaskStatusActive(hpWaterCalibrationStatus));
     const hpWaterCalibrationResultReady = /DONE|APPLIED/.test(String(hpWaterCalibrationStatus || "").toUpperCase());
     const hpWaterCalibrationApplied = /APPLIED/.test(String(hpWaterCalibrationStatus || "").toUpperCase());
-    const flowKpSuggested = getSettingsStatValue("flowKpSuggested", { decimals: 5, trimTrailingZeros: true });
-    const flowKiSuggested = getSettingsStatValue("flowKiSuggested", { decimals: 5, trimTrailingZeros: true });
+    const flowKpSuggested = getAutotuneGainValue("flowKpSuggested");
+    const flowKiSuggested = getAutotuneGainValue("flowKiSuggested");
     const boilerResultReady = isBoilerTestResultReady(boilerStatus);
     const boilerResultApplied = /APPLIED/.test(String(boilerStatus || "").toUpperCase());
     const boilerConfirmationRequired = /CONFIRM_REQUIRED/.test(String(boilerStatus || "").toUpperCase());
     const boilerResultQualityRaw = getSettingsTextStatValue("boilerPowerTestResultQuality");
     const boilerResultQualityDenied = String(boilerResultQualityRaw || "").toUpperCase().includes("REJECTED:");
     const autotuneResultReady = /DONE|APPLIED/.test(String(autotuneStatus || "").toUpperCase());
+    const autotuneResultApplied = /^APPLIED\b/i.test(autotuneStatus);
+    const autotuneTestingGains = autotuneTaskRunning && /^(VALIDATION_RECOVER|VALIDATION_RETRY|VALIDATING)/i.test(autotuneStatus);
     const boilerStatusDisplay = (() => {
       const upper = String(boilerStatus || "").toUpperCase();
       if (upper.includes("FAILED")) return t("settingsService.boilerFailed");
@@ -595,18 +677,27 @@ import { formatNumber, t } from "../i18n/index.js";
       if (boilerResultReady) return t("settingsService.readyToApply");
       return cm100Ready ? t("settingsService.readyToStart") : t("settingsService.waitCm100");
     })();
-    const autotuneStatusDisplay = cm100Ready
-      ? (autotuneTaskWaitingForCm100
-        ? t("settingsService.waitCm100")
-        : (autotuneTaskRunning
-          ? autotuneProgress.phase
-          : (autotuneResultReady ? t("settingsService.readyToApply") : t("settingsService.readyToStart"))))
-      : t("settingsService.waitCm100");
-    const airPurgeStatusDisplay = cm100Ready
+    const autotuneStarting = state.busyAction === "flowAutotuneStart";
+    const autotuneTerminalStatus = autotuneStarting ? "" : getAutotuneTerminalStatus(autotuneStatus);
+    const autotuneStatusDisplay = autotuneStarting
+      ? t("settingsService.phasePrep")
+      : autotuneTerminalStatus || (cm100Ready
+        ? (autotuneTaskWaitingForCm100
+          ? t("settingsService.waitCm100")
+          : (autotuneTaskRunning
+            ? autotuneProgress.phase
+            : (autotuneResultApplied ? t("settingsService.autotuneApplied") : autotuneResultReady ? t("settingsService.readyToApply") : t("settingsService.readyToStart"))))
+        : t("settingsService.waitCm100"));
+    const airPurgeTerminalStatus = state.busyAction === "airPurgeStart"
+      ? ""
+      : getAirPurgeTerminalStatus(airPurgeStatus);
+    const airPurgeStatusDisplay = state.busyAction === "airPurgeStart"
+      ? t("settingsService.phasePrep")
+      : airPurgeTerminalStatus || (cm100Ready
       ? (airPurgeTaskRunning
         ? airPurgeProgress.phase
         : (airPurgeResultReady ? t("settingsService.boilerDone") : t("settingsService.readyToStart")))
-      : t("settingsService.waitCm100");
+      : t("settingsService.waitCm100"));
     const manualFlowStatusDisplay = cm100Ready
       ? (manualFlowTaskRunning ? t("settingsService.flowActive") : t("settingsService.readyToStart"))
       : t("settingsService.waitCm100");
@@ -844,11 +935,15 @@ import { formatNumber, t } from "../i18n/index.js";
           copy: t("settingsService.autotuneCopy"),
           subcopy: t("settingsService.autotuneSubcopy"),
           status: autotuneStatusDisplay,
-          statusCopy: autotuneTaskWaitingForCm100
+          statusCopy: autotuneTerminalStatus
+            ? getAutotuneFailureAdvice(autotuneStatus)
+            : autotuneTaskWaitingForCm100
             ? t("settingsService.autotuneWait")
             : (autotuneTaskRunning
-              ? t("settingsService.autotuneRunning")
-              : (cm100Ready ? t("settingsService.autotuneReady") : t("settingsService.autotuneStartFirst"))),
+              ? (autotuneTestingGains ? t("settingsService.autotuneTestingGains") : t("settingsService.autotuneRunning"))
+              : (autotuneResultReady && !autotuneStarting
+                ? (autotuneResultApplied ? t("settingsService.autotuneAppliedCopy") : t("settingsService.autotuneResultCopy"))
+                : (cm100Ready ? t("settingsService.autotuneReady") : t("settingsService.autotuneStartFirst")))),
           progressTask: "autotune",
           actions: `
             ${state.entities.flowAutotuneStart || state.entities.flowAutotuneAbort ? renderNamedToggleActionButton({
@@ -863,8 +958,10 @@ import { formatNumber, t } from "../i18n/index.js";
             ${state.entities.flowAutotuneApply ? renderNamedActionButton("flowAutotuneApply", t("settingsService.applyBtn"), "oq-helper-button oq-helper-button--ghost", autotuneBusy || autotuneApplyDisabled) : ""}
           `,
           metrics: `
-            ${renderSettingsStaticField("flowKpSuggested", t("settingsService.kpSuggested"), t("settingsService.kpCopy"), flowKpSuggested, "oq-settings-field--compact")}
-            ${renderSettingsStaticField("flowKiSuggested", t("settingsService.kiSuggested"), t("settingsService.kiCopy"), flowKiSuggested, "oq-settings-field--compact")}
+            ${renderSettingsStaticField("flowKp", t(autotuneTestingGains ? "settingsService.kpTest" : "settingsService.kpCurrent"), t("settingsService.currentGainsCopy"), getAutotuneGainValue("flowKp"), "oq-settings-field--compact")}
+            ${renderSettingsStaticField("flowKi", t(autotuneTestingGains ? "settingsService.kiTest" : "settingsService.kiCurrent"), t("settingsService.currentGainsCopy"), getAutotuneGainValue("flowKi"), "oq-settings-field--compact")}
+            ${renderSettingsStaticField("flowKpSuggested", t("settingsService.kpSuggested"), t("settingsService.kpCopy"), autotuneResultReady && !autotuneStarting ? flowKpSuggested : "—", "oq-settings-field--compact")}
+            ${renderSettingsStaticField("flowKiSuggested", t("settingsService.kiSuggested"), t("settingsService.kiCopy"), autotuneResultReady && !autotuneStarting ? flowKiSuggested : "—", "oq-settings-field--compact")}
           `,
         }),
       },
@@ -924,7 +1021,9 @@ import { formatNumber, t } from "../i18n/index.js";
           copy: t("settingsService.purgeCopy"),
           subcopy: t("settingsService.purgeSubcopy"),
           status: airPurgeStatusDisplay,
-          statusCopy: airPurgeTaskRunning
+          statusCopy: airPurgeTerminalStatus
+            ? t("settingsService.purgeResultCopy")
+            : airPurgeTaskRunning
             ? t("settingsService.purgeRunning")
             : (cm100Ready ? t("settingsService.purgeReady") : t("settingsService.purgeStartFirst")),
           progressTask: "purge",
@@ -943,6 +1042,7 @@ import { formatNumber, t } from "../i18n/index.js";
           metrics: `
             ${renderSettingsStaticField("airPurgeRemaining", t("settingsService.purgeRemaining"), t("settingsService.purgeRemainingCopy"), airPurgeRemaining, "oq-settings-field--compact")}
             ${renderSettingsStaticField("airPurgePhase", t("settingsService.purgePhase"), t("settingsService.purgePhaseCopy"), airPurgePhase, "oq-settings-field--compact")}
+            ${hasEntity("airPurgeTargetIpwm") ? renderSettingsStaticField("airPurgeTargetIpwm", t("settingsService.purgeTargetIpwm"), t("settingsService.purgeTargetIpwmCopy"), getSettingsStatValue("airPurgeTargetIpwm", { decimals: 0 }), "oq-settings-field--compact") : ""}
             ${renderSettingsStaticField("flowSelected", t("settingsService.purgeFlow"), t("settingsService.purgeFlowCopy"), getSettingsStatValue("flowSelected"), "oq-settings-field--compact")}
             ${renderSettingsCheckboxSwitchField(
               "airPurgeReturnToAuto",
@@ -958,8 +1058,11 @@ import { formatNumber, t } from "../i18n/index.js";
 
     return {
       cm100Status: cm100StatusDisplay,
-      cm100StartDisabled,
-      cm100StopDisabled,
+      cm100ControlActive,
+      cm100StartLabel: cm100Starting ? t("settingsService.serviceStarting") : t("settingsService.serviceStart"),
+      cm100StopLabel: cm100Stopping ? t("settingsService.serviceStopping") : t("settingsService.serviceStop"),
+      cm100StartDisabled: cm100StartDisabled || !cm100ControlKnown || !state.entities.commissioningCm100Start,
+      cm100StopDisabled: cm100Busy || cm100WaitingForCm100 || cm100Stopping || !cm100ControlKnown || !state.entities.commissioningCm100Stop,
       serviceStatusCopy,
       tasks,
     };
@@ -1131,8 +1234,16 @@ import { formatNumber, t } from "../i18n/index.js";
               <p>${escapeHtml(service.serviceStatusCopy)}</p>
             </div>
             <div class="oq-settings-commissioning-hero-actions oq-settings-service-toolbar-actions">
-              ${state.entities.commissioningCm100Start ? renderNamedActionButton("commissioningCm100Start", t("settingsService.serviceStart"), "oq-helper-button oq-helper-button--primary", service.cm100StartDisabled) : ""}
-              ${state.entities.commissioningCm100Stop ? renderNamedActionButton("commissioningCm100Stop", t("settingsService.serviceStop"), "oq-helper-button oq-helper-button--ghost", service.cm100StopDisabled) : ""}
+              ${state.entities.commissioningCm100Start || state.entities.commissioningCm100Stop ? renderNamedToggleActionButton({
+                active: service.cm100ControlActive,
+                startKey: "commissioningCm100Start",
+                stopKey: "commissioningCm100Stop",
+                startLabel: service.cm100StartLabel,
+                stopLabel: service.cm100StopLabel,
+                stopClass: "oq-helper-button oq-helper-button--primary",
+                startDisabled: service.cm100StartDisabled,
+                stopDisabled: service.cm100StopDisabled,
+              }) : ""}
             </div>
           </div>
 
