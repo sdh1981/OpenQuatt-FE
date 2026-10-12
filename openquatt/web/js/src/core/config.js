@@ -679,6 +679,16 @@
     ["hp2FourWay", DOMAIN_BINARY_SENSOR, "HP2 - 4-Way valve"],
     // OpenQuatt FE: warm water (DHW).
     ["dhwState", DOMAIN_TEXT_SENSOR, "DHW state"],
+    ["dhwFault", DOMAIN_TEXT_SENSOR, "DHW fault"],
+    ["dhwTankTop", DOMAIN_SENSOR, "DHW Tank Top"],
+    ["dhwTankBottom", DOMAIN_SENSOR, "DHW Tank Bottom"],
+    ["dhwEtaReady", DOMAIN_SENSOR, "DHW estimated time to ready"],
+    ["dhwTapsToday", DOMAIN_SENSOR, "DHW tappingen vandaag"],
+    ["dhwElementActive", DOMAIN_BINARY_SENSOR, "DHW Element Active"],
+    ["dhwValvePosition", DOMAIN_TEXT_SENSOR, "DHW Valve Position"],
+    ["dhwBoostNow", DOMAIN_SWITCH, "DHW boost now"],
+    ["dhwLegionellaForce", DOMAIN_SWITCH, "DHW source legionella force"],
+    ["dhwClearFault", DOMAIN_BUTTON, "DHW clear fault"],
     ["dhwLegionellaLastRun", DOMAIN_TEXT_SENSOR, "DHW legionella laatste run"],
     ["dhwLegionellaNextRun", DOMAIN_TEXT_SENSOR, "DHW legionella volgende run"],
     ["dhwUa", DOMAIN_SENSOR, "DHW tank standby loss"],
@@ -1735,6 +1745,20 @@
     "espInternalTemp",
     "controlModeOverride",
   ];
+  export const OVERVIEW_DHW_KEYS = [
+    "dhwState",
+    "dhwFault",
+    "dhwTankTop",
+    "dhwTankBottom",
+    "dhwEtaReady",
+    "dhwTapsToday",
+    "dhwElementActive",
+    "dhwValvePosition",
+    "dhwBoostNow",
+    "dhwLegionellaForce",
+    "dhwLockout",
+    "dhwClearFault",
+  ];
   export const OVERVIEW_KEYS = [
     "strategy",
     "openquattEnabled",
@@ -1832,6 +1856,8 @@
     "silentActive",
     "stickyActive",
     ...HP_PANEL_ENTITY_KEYS,
+    // OpenQuatt FE: warmwaterkaart.
+    ...OVERVIEW_DHW_KEYS,
   ];
   export const CONTROL_REPLAY_STATE_KEYS = [
     "strategyActiveCode",
@@ -1923,6 +1949,8 @@
     "silentModeOverride",
     ...HP_PANEL_ENTITY_KEYS,
     ...INSTALLATION_MONITORING_OVERVIEW_KEYS,
+    // OpenQuatt FE: warmwaterkaart.
+    ...OVERVIEW_DHW_KEYS,
   ];
   export const OVERVIEW_METADATA_KEYS = [
     ...FREQUENCY_MINIMUM_KEYS,

@@ -15,6 +15,7 @@ import { render } from "../core/render-scheduler.js";
 import { formatNumber, t } from "../i18n/index.js";
 import { replaceOuterHtmlIfSignatureChanged, setInnerHtmlIfChanged } from "./view-utils.js";
 import { renderStatCard } from "./stat-card.js";
+import { getOverviewDhwRenderSignature, renderOverviewDhwPanel } from "./overview-dhw.js";
 
   export function getHeatPumpRuntimeModel(title, keys, accent) {
     const mode = formatWorkingMode(getEntityStateText(keys.mode, "Unknown"));
@@ -1292,6 +1293,7 @@ import { renderStatCard } from "./stat-card.js";
             ${renderOverviewNarrativePanel(getOverviewStrategySectionModel())}
             ${renderOverviewTempsPanel()}
           </div>
+          ${renderOverviewDhwPanel()}
           ${heatPumpControls ? `<div class="oq-overview-hp-tools">${heatPumpControls}</div>` : ""}
           <div class="oq-overview-hp-grid oq-overview-hp-grid--${escapeHtml(hpGridLayout)}" data-oq-matrix-target="hardware-section">
             ${heatPumpPanels.map((panel, index) => renderHeatPumpPanel(panel.title, panel.keys, panel.accent, getHeatPumpPanelEmphasis(index, heatPumpPanels, hpLayoutMode), getHeatPumpPanelLayoutAction(index, heatPumpPanels, hpLayoutMode))).join("")}
@@ -1567,6 +1569,7 @@ import { renderStatCard } from "./stat-card.js";
     const summaryShell = board.querySelector(".oq-overview-summary-shell");
     const system = board.querySelector(".oq-overview-system");
     const temps = board.querySelector(".oq-overview-temps");
+    const dhwPanel = board.querySelector(".oq-overview-dhw");
     const trends = board.querySelector(".oq-overview-trends");
     const hpTools = board.querySelector(".oq-overview-hp-tools");
     const hpGrid = board.querySelector(".oq-overview-hp-grid");
@@ -1623,6 +1626,10 @@ import { renderStatCard } from "./stat-card.js";
         getOverviewTempsRenderSignature(tempsModel),
         () => renderOverviewTempsPanel(),
       );
+    }
+
+    if (dhwPanel) {
+      replaceOuterHtmlIfSignatureChanged(dhwPanel, getOverviewDhwRenderSignature(), () => renderOverviewDhwPanel());
     }
 
     if (trends && state.appView === "overview") {

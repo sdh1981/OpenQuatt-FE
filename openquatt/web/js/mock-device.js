@@ -2533,6 +2533,19 @@
       setEntity("binary_sensor", name, { value });
     });
 
+    // OpenQuatt FE: warmwaterkaart.
+    setEntity("text_sensor", "DHW state", { state: "DHW_HEAT_PUMP", value: "DHW_HEAT_PUMP" });
+    setEntity("text_sensor", "DHW fault", { state: "NONE", value: "NONE" });
+    setEntity("text_sensor", "DHW Valve Position", { state: "DHW", value: "DHW" });
+    setEntity("sensor", "DHW Tank Top", { value: 47.8, uom: "°C" });
+    setEntity("sensor", "DHW Tank Bottom", { value: 39.4, uom: "°C" });
+    setEntity("sensor", "DHW estimated time to ready", { value: 34, uom: "min" });
+    setEntity("sensor", "DHW tappingen vandaag", { value: 3 });
+    setEntity("binary_sensor", "DHW Element Active", { value: false });
+    setEntity("switch", "DHW boost now", { state: false, value: false });
+    setEntity("switch", "DHW source legionella force", { state: false, value: false });
+    setEntity("switch", "DHW lockout", { state: false, value: false });
+
     applyCoolingDewPointSourceSelection();
 
     seedHp2Entities();

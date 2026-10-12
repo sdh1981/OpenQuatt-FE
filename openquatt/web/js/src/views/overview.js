@@ -14,6 +14,7 @@ import { formatCoolingBlockReason, getCoolingCompressorRunning, getCoolingStartB
 import { render } from "../core/render-scheduler.js";
 import { isSystemInStandby, replaceOuterHtmlIfSignatureChanged, setInnerHtmlIfChanged } from "./view-utils.js";
 import { renderStatCard } from "./stat-card.js";
+import { formatFeControlModeLabel } from "./overview-dhw.js";
 
   const MATRIX_TARGET_BY_KEY = { flowSelected: "flow", totalCop: "cop", totalEer: "cop" };
   export function renderOverviewStatCardMarkup({ label, value, tone, note, status = false, key = "" }) {
@@ -617,7 +618,7 @@ import { renderStatCard } from "./stat-card.js";
     const system = getOverviewSystemSignal();
     return [
       { label: t("overview.cardStrategy"), value: strategyLabel, tone: "orange", note: t("overview.cardStrategyNote") },
-      { label: t("overview.cardControlMode"), value: controlModeLabel, tone: "orange", note: t("overview.cardControlModeNote") },
+      { label: t("overview.cardControlMode"), value: formatFeControlModeLabel(controlModeLabel), tone: "orange", note: t("overview.cardControlModeNote") },
       { label: t("overview.cardControl"), value: primary.value, tone: "orange", note: t("overview.cardControlNote") },
       { label: t("overview.cardSystem"), value: system.value, tone: "orange", note: t("overview.cardSystemNote") },
     ];

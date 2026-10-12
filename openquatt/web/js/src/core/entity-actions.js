@@ -9,6 +9,7 @@ import { formatValue, getEntityValue, getNumberMeta, normalizeDateTimeValue, nor
 import { commitDateTime, commitNumber, commitSelect, commitText, disableRange, triggerNamedButton, updateCurveDraftFromPointer } from "./entity-write-actions.js";
 import { finishTimeInput, handleTimeInputFocus } from "./time-input.js";
 import { handleNamedButtonAction } from "./named-button-actions.js";
+import { handleDhwAction } from "../features/dhw-actions.js";
 import { state } from "./state.js";
 import { formatDutchAmps, getCommittedElectricalLimitRaw, getElectricalLimitChangePlan, renderElectricalLimitEstimate, renderElectricalLimitFooter, renderElectricalLimitRestore, resolveElectricalLimitView } from "../settings/electrical-limit.js";
 import { setInterfacePanelOpen } from "./runtime.js";
@@ -56,6 +57,7 @@ const actionDelegates = [
   handleControlAction,
   handleWebServerLogAction,
   handleSystemAction,
+  handleDhwAction,
   handleNamedButtonAction,
   handleShellAction,
 ];
