@@ -52,6 +52,7 @@
 .oq-overview-summary-shell,
 .oq-overview-system,
 .oq-overview-temps,
+.oq-overview-dhw,
 .oq-overview-hp,
 .oq-overview-energy {
   background: var(--oq-overview-panel-bg);
@@ -480,6 +481,7 @@
 
 .oq-overview-system,
 .oq-overview-temps,
+.oq-overview-dhw,
 .oq-overview-hp,
 .oq-overview-energy {
   padding: 20px;
@@ -561,6 +563,38 @@
   display: grid;
   gap: 10px;
   margin-top: 14px;
+}
+
+/* OpenQuatt FE: warmwaterkaart. */
+.oq-overview-dhw {
+  margin-top: 16px;
+}
+
+.oq-overview-dhw-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  column-gap: 24px;
+  margin-top: 14px;
+}
+
+.oq-overview-dhw-list .oq-overview-row:last-child {
+  border-bottom: 1px solid var(--oq-overview-row-border);
+}
+
+.oq-overview-row--warn strong {
+  color: #dc2626;
+}
+
+.oq-overview-dhw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.oq-overview-dhw-actions .is-active {
+  border-color: rgba(37, 99, 235, 0.45);
+  background: rgba(37, 99, 235, 0.12);
 }
 
 .oq-overview-row {

@@ -148,6 +148,9 @@ import { formatDate, formatNumber, formatTime, getIntlLocale, optionLabel, t } f
     const normalized = String(value || "").trim().toLowerCase();
     if (normalized.includes("cm100")) return "cm100";
     if (normalized.includes("cm98")) return "cm98";
+    // OpenQuatt FE: CM10/CM11 vóór CM1 herkennen.
+    if (normalized.includes("cm11")) return "cm11";
+    if (normalized.includes("cm10")) return "cm10";
     if (normalized.includes("cm5")) return "cm5";
     if (normalized.includes("cm4")) return "cm4";
     if (normalized.includes("cm3")) return "cm3";
@@ -162,6 +165,7 @@ import { formatDate, formatNumber, formatTime, getIntlLocale, optionLabel, t } f
     if (code === 1) return t("overview.strategyCooling");
     if (code === 2) return t("overview.strategyCurve");
     if (code === 3) return optionLabel("Power House");
+    if (code === 5) return t("overviewDhw.strategy");
     return getEntityStateText("strategy", "—");
   }
 

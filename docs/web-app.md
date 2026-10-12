@@ -285,6 +285,8 @@ Alleen in OpenQuatt FE (Full Electric met een boiler, 3-wegklep en 3 kW-element)
 - **Alleen element (CM11):** de schakelaar en de thermostaat op tank bottom.
 - **Tank:** tapdetectie, het tankvolume, de ruimtetemperatuur en het geleerde warmteverlies.
 
+Op het **Overzicht** staat op FE een kaart *Warm water*: tank boven en onder, de status en een eventuele storing, de geschatte tijd tot de tank klaar is, het element, de stand van de driewegklep en het aantal tappingen van vandaag. Daaronder staan Snelboost, Legionella nu, Blokkeren en (alleen bij een storing) Storing wissen; elke knop vraagt eerst om bevestiging. CM10 en CM11 krijgen een eigen label in de statuskaart.
+
 Op FE verdwijnen de CV-ketel, het hulprelais en de OTB-diagnose uit de app; FE heeft geen CV-ketel. Zie `fe/README.md` in de FE-repository.
 
 ### Bronnen / integraties
