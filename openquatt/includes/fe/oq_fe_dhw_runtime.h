@@ -11,6 +11,7 @@
 #include "oq_dhw_controller_logic.h"
 #include "oq_fe_dhw_bridge.h"
 #include "oq_fe_dhw_levels_logic.h"
+#include "oq_fe_dhw_settings_store.h"
 #include "oq_fe_dhw_tank_logic.h"
 #include "oq_fe_io_runtime.h"
 
@@ -57,6 +58,8 @@ class Runtime {
     const uint32_t dt_ms = last_tick_ms_ == 0 ? 0 : std::min<uint32_t>(now_ms - last_tick_ms_, 60000U);
     last_tick_ms_ = now_ms;
 
+    // De eerste tick laadt de bewaarde DHW-instellingen, vóór ze gelezen worden.
+    oq_fe_dhw_settings::store().tick(now_ms);
     seed_legionella_();
 
     // Service (CM100) of een override gaat voor: de toestandsmachine pauzeert

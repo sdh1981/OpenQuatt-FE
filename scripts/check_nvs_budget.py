@@ -142,6 +142,9 @@ def estimate_custom_preferences(config: Any) -> dict[str, int]:
         # Restart handoff lives in its own namespace, separate from the three
         # incident reset records in the ESPHome namespace.
         entries["restart handoff"] = blob_entries(64)
+    # OpenQuatt FE: alle DHW-instellingen in één record (oq_fe_dhw_settings_record.h).
+    if any(isinstance(item, dict) and str(item.get("id")) == "oq_dhw_start_top_c" for item in config.get("number", []) or []):
+        entries["FE DHW settings record"] = blob_entries(156)
     return entries
 
 

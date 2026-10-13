@@ -27,12 +27,12 @@ globals:
 
   - id: oq_dhw_taps_today
     type: int
-    restore_value: true
+    restore_value: false  # RAM: begint na een herstart opnieuw
     initial_value: '0'
 
   - id: oq_dhw_last_tap_wh
     type: float
-    restore_value: true
+    restore_value: false  # RAM: begint na een herstart opnieuw
     initial_value: 'NAN'
 
 number:
@@ -47,7 +47,7 @@ number:
     step: 0.1
     initial_value: 0.4
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -61,7 +61,7 @@ number:
     step: 10
     initial_value: 220
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -75,7 +75,7 @@ number:
     step: 0.5
     initial_value: 50
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -89,7 +89,7 @@ number:
     step: 0.5
     initial_value: 5
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -103,7 +103,7 @@ number:
     step: 0.5
     initial_value: 20
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
 switch:
@@ -113,14 +113,14 @@ switch:
     icon: mdi:water-pump
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_element_only_enable
     name: "DHW Element Only Heating"
     icon: mdi:heating-coil
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: ALWAYS_OFF  # stand komt uit het DHW-instellingenrecord
 
 select:
   - platform: template
@@ -129,7 +129,7 @@ select:
     icon: mdi:source-branch
     entity_category: config
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     options:
       - Vast
       - Home Assistant

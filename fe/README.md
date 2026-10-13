@@ -83,6 +83,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | — | Upstream-merge v0.53.0 → v0.54.1 | fe.11 |
 | NVS-1 | Meting vrije NVS-entries: log, sensor "NVS vrije entries", waarschuwing onder 20. Voorstel: `fe/nvs-voorstel.md` | fe.12 |
 | — | Bij een storing gaan Snelboost en Legionella nu uit; meldingen tonen de vertaalde naam | fe.13 |
+| NVS-2 | DHW-instellingen in één NVS-record (35 numbers, 10 switches, 1 select); tappingentellers naar RAM. Meting fe.13: 14 vrij na volle back-up; schatting na bundelen ~151 | fe.14 |
 | 6 | Bankproef en ingebruikname van de Q (incl. NVS-meetprotocol). Checklist: `fe/ingebruikname-q.md` | bankproef klaar; ingebruikname gepland |
 
 ## Haken in upstream-bestanden
@@ -98,8 +99,8 @@ Elke haak staat achter `#if OQ_FE_TARGET` of is in een upstream-build onbereikba
 | `control/oq_thermal_request_logic.h` | CM10 → verwarmstand met `STRATEGY_DHW`; niveaus uit `oq_fe_dhw_bridge` |
 | `control/oq_flow_runtime.h` | Flow-setpoint in CM10; CM11 is flow-idle |
 | `control/oq_thermal_actuator_runtime.h` | CM10 in de melding "frequentiegrens blokkeert start" |
-| `base/common.yaml`, `oq_boiler_control.yaml`, `oq_boiler_opentherm.yaml` | Losse header-includes weg (de map-include neemt ze al op); voorkomt de mtime-race bij `#pragma once`. Upstream-bug, gemeld in OpenQuatt/OpenQuatt#824; weghalen zodra upstream het oplost |
-| `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (70 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
+| `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (73 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
+| `scripts/check_nvs_budget.py` | `int64_t`/`uint64_t` als globaltype en het FE-instellingenrecord (7 entries) als custom record |
 
 ## Control modes
 

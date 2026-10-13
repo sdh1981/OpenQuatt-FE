@@ -1,6 +1,10 @@
 # Voorstel: NVS-opslag in OpenQuatt FE
 
-Status: stap 1 gebouwd (fe.12). Stap 2 wacht op de bankmeting.
+Status: stap 1 gebouwd (fe.12), stap 2 en 3 gebouwd (fe.14).
+
+**Meting op de Q (13-10, fe.13, geflasht met wissen):** 405 vrij in rust, **14 vrij** na het terugzetten van een volledige testback-up (126 instellingen afwijkend van de standaard). Volgens de beslisregel: onder 20, dus stap 2 vóór de ingebruikname. FE neemt ongeveer 153 entries voor zijn rekening; zonder FE zou upstream Duo na een volledige back-up rond de 167 vrij uitkomen, in lijn met de 169 die upstream zelf mat.
+
+**Na stap 2 (schatting):** 583 entries in plaats van 720 (upstream Duo: 570). Omgerekend naar de meting: ongeveer **151 vrij** na een volledige back-up. Te bevestigen met dezelfde meting op fe.14.
 
 **Besluiten (13-10):** 1 ja, 2 ja (alleen als de meting erom vraagt), 3 ja (samen met stap 2), 4 ja (na de meting).
 
