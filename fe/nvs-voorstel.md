@@ -29,7 +29,7 @@ Nagelopen in de ESPHome 2026.9.0-bron (`components/esp32/preferences.cpp` en de 
 - Een **number** of **select** schrijft pas bij de eerste wijziging. Een setting die op de standaardwaarde staat, kost niets.
 - Een **switch** met `RESTORE_*` schrijft bij elke `publish_state`, dus al bij de eerste boot. De 10 FE-switches staan er altijd.
 - Een **global** met `restore_value` schrijft zodra de waarde afwijkt van de beginwaarde.
-- **Een back-up terugzetten** schrijft alle instellingen tegelijk. Daarmee is de schatting geen theoretische bovengrens maar een realistisch scenario: de overstap van de LilyGO doe je juist zo.
+- **Een back-up terugzetten** schrijft alle instellingen tegelijk. Daarmee is de schatting geen theoretische bovengrens maar een realistisch scenario, bijvoorbeeld bij de ingebruikname of na een reset.
 
 Is de NVS vol, dan faalt `nvs_set_blob`. ESPHome logt dat alleen ("Writing N items: … failed"); in de app zie je niets. De gewijzigde waarde werkt tot de herstart en is daarna terug op de oude stand. Ook systeemrecords (WiFi fast-connect, PHY-kalibratie) staan in deze partitie.
 
@@ -52,8 +52,8 @@ De schatting kan de echte bezetting zowel over- als onderschatten. Fragmentatie,
 **Beslisregel:**
 
 - Volle bezetting met **≥ 100 vrij**: klaar. Stap 2 vervalt; de meting blijft als bewaking.
-- **Tussen 20 en 100 vrij**: stap 2 bouwen vóór de overstap.
-- **Minder dan 20 vrij**, of fouten in het log: niet overstappen tot stap 2 er is.
+- **Tussen 20 en 100 vrij**: stap 2 bouwen vóór de ingebruikname.
+- **Minder dan 20 vrij**, of fouten in het log: de Q niet in gebruik nemen tot stap 2 er is.
 
 ### Stap 2: DHW-instellingen bundelen (alleen als de meting dat vraagt)
 
@@ -66,7 +66,7 @@ Hiervoor gebruiken we upstreams eigen ontwerpregels (`docs/development/nvs-persi
 
 **Geschat resultaat:** FE gaat van 720 naar ongeveer **584 entries (46 vrij)**. Dat is beter dan nu, maar nog onder de marge van 100. Daarom blijft de meting uit stap 1 de echte toets.
 
-**Migratie:** niet nodig, omdat de Q nog niet in gebruik is. Bij de overstap flash je met wissen en zet je de instellingen opnieuw. Dat was al zo, want de entitynamen verschillen van die van de LilyGO. Bouwen we stap 2 pas ná de overstap, dan is wél een migratie nodig volgens de upstreamregels: eerst het nieuwe record schrijven en teruglezen, pas daarna de oude sleutels wissen. Dat is meer werk. Een reden om de beslissing vóór de overstap te nemen.
+**Migratie:** niet nodig, omdat de Q nog niet in gebruik is. Bij de ingebruikname flash je met wissen en stel je de instellingen in. Bouwen we stap 2 pas ná de ingebruikname, dan is wél een migratie nodig volgens de upstreamregels: eerst het nieuwe record schrijven en teruglezen, pas daarna de oude sleutels wissen. Dat is meer werk. Een reden om de beslissing vóór de ingebruikname te nemen.
 
 ## Bewust niet
 
