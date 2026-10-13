@@ -4672,6 +4672,8 @@ export default {
     reasonElementOnlyCopy: "Alleen element staat aan: de warmtepompen blijven uit en het element houdt de tank warm (CM11).",
     reasonDhwCleared: "Warmwatervraag afgerond",
     reasonDhwClearedCopy: "De warmwatercyclus is klaar of gestopt; de regeling gaat terug naar de normale stand.",
+    nvsLow: "Opslag bijna vol",
+    nvsLowValue: "{entries} vrij: wijzigingen worden mogelijk niet bewaard",
   },
   overview: {
     monitoringTitle: "Installatiebewaking",
@@ -5221,5 +5223,7 @@ export default {
     benchStatusOff: "Uit",
     benchStatusExpired: "Verlopen",
     benchStatusNotAllowed: "Niet toegestaan",
+    nvsTitle: "Vrije opslag (NVS)",
+    nvsCopy: "Vrije plaatsen voor bewaarde instellingen. Onder 20 worden wijzigingen mogelijk niet meer bewaard. Wordt na het opstarten en daarna elk uur gemeten.",
   },
 };

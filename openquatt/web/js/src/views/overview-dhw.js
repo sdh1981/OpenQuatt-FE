@@ -67,6 +67,14 @@ function formatEta(minutes) {
   return t("overviewDhw.etaHours", { hours, minutes: String(Math.round(minutes % 60)).padStart(2, "0") });
 }
 
+// Zelfde grens als kNvsCriticalEntries in oq_fe_io_logic.h.
+export const NVS_CRITICAL_ENTRIES = 20;
+
+export function isNvsCritical() {
+  const available = getEntityNumericValue("nvsAvailable");
+  return hasEntity("nvsAvailable") && !Number.isNaN(available) && available < NVS_CRITICAL_ENTRIES;
+}
+
 function onOff(key) {
   return isEntityActive(key) ? t("overviewDhw.on") : t("overviewDhw.off");
 }
@@ -85,6 +93,7 @@ export function getOverviewDhwModel() {
     hasEntity("dhwElementActive") && { label: t("overviewDhw.element"), value: onOff("dhwElementActive") },
     hasEntity("dhwValvePosition") && { label: t("overviewDhw.valve"), value: DHW_VALVE_LABEL_KEYS[valve] ? t(DHW_VALVE_LABEL_KEYS[valve]) : t("overviewDhw.valveUnknown") },
     hasEntity("dhwTapsToday") && { label: t("overviewDhw.tapsToday"), value: getEntityStateText("dhwTapsToday") },
+    isNvsCritical() && { label: t("overviewDhw.nvsLow"), value: t("overviewDhw.nvsLowValue", { entries: Math.round(getEntityNumericValue("nvsAvailable")) }), tone: "warn" },
   ].filter(Boolean);
 
   const actions = [

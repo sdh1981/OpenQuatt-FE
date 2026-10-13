@@ -97,6 +97,15 @@ void test_valve_position() {
   assert(valve_position(true, false) == ValvePosition::CV);
 }
 
+void test_nvs_level() {
+  assert(nvs_level(169) == NvsLevel::OK);
+  assert(nvs_level(50) == NvsLevel::OK);
+  assert(nvs_level(49) == NvsLevel::LOW);
+  assert(nvs_level(20) == NvsLevel::LOW);
+  assert(nvs_level(19) == NvsLevel::CRITICAL);
+  assert(nvs_level(-90) == NvsLevel::CRITICAL);
+}
+
 }  // namespace
 
 int main() {
@@ -109,5 +118,6 @@ int main() {
   test_valve_position();
   test_bench_tests_allowed();
   test_format_onewire_address();
+  test_nvs_level();
   return 0;
 }

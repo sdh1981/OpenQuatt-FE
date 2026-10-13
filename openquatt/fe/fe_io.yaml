@@ -101,6 +101,16 @@ sensor:
           if (oq_fe_io::ds18b20_power_on_value(x)) return {};
           return x;
 
+  # NVS-bezetting (fe/nvs-voorstel.md): na het opstarten en daarna elk uur.
+  - platform: template
+    id: fe_nvs_available
+    name: "NVS vrije entries"
+    icon: mdi:database
+    entity_category: diagnostic
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: never
+
 binary_sensor:
   - platform: gpio
     id: fe_dhw_valve_feedback
@@ -176,6 +186,11 @@ text_sensor:
       return oq_fe_io_runtime::Runtime::onewire_addresses();
 
 interval:
+  - interval: 60min
+    startup_delay: 30s
+    then:
+      - lambda: |-
+          id(fe_nvs_available).publish_state(oq_fe_nvs::measure_and_log());
   - interval: 1s
     startup_delay: 5s
     then:

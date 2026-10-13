@@ -81,7 +81,8 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 5d-1 | Decision log: eigen redenen voor CM10 (`dhw_request`), CM11 (`element_only`) en terug (`dhw_request_cleared`), codes 200–202. | fe.10 |
 | 5d-2 | HA-bestanden in `fe/dashboard/`: package, tankkaarten en de view "Warm water". | geen firmware |
 | — | Upstream-merge v0.53.0 → v0.54.1 | fe.11 |
-| 6 | Bankproef op de Q, daarna overstap van de LilyGO | gepland |
+| NVS-1 | Meting vrije NVS-entries: log, sensor "NVS vrije entries", waarschuwing onder 20. Voorstel: `fe/nvs-voorstel.md` | fe.12 |
+| 6 | Bankproef op de Q (incl. NVS-meetprotocol), daarna overstap van de LilyGO | gepland |
 
 ## Haken in upstream-bestanden
 

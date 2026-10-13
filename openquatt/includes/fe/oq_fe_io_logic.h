@@ -131,4 +131,17 @@ inline const char* test_status_text(TestStatus status) {
   }
 }
 
+// NVS-bezetting (fe/nvs-voorstel.md). Upstream houdt 100 vrije entries als
+// marge; onder 50 waarschuwt FE in het log, onder 20 ook in de app.
+constexpr int kNvsLowEntries = 50;
+constexpr int kNvsCriticalEntries = 20;
+
+enum class NvsLevel : uint8_t { OK, LOW, CRITICAL };
+
+inline NvsLevel nvs_level(int available_entries) {
+  if (available_entries < kNvsCriticalEntries) return NvsLevel::CRITICAL;
+  if (available_entries < kNvsLowEntries) return NvsLevel::LOW;
+  return NvsLevel::OK;
+}
+
 }  // namespace oq_fe_io

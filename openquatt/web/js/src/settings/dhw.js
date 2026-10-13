@@ -156,6 +156,7 @@ export function renderSettingsDhwBenchSection() {
     status("dhwTestElementStatus", t("settingsDhw.benchElementStatusTitle"), "", benchStatus("dhwTestElementStatus")),
     status("dhwElementActive", t("settingsDhw.benchElementActiveTitle"), "", isEntityActive("dhwElementActive") ? t("overviewDhw.on") : t("overviewDhw.off")),
     status("dhwOneWireAddresses", t("settingsDhw.benchAddressesTitle"), t("settingsDhw.benchAddressesCopy"), addresses),
+    status("nvsAvailable", t("settingsDhw.nvsTitle"), t("settingsDhw.nvsCopy"), getSettingsStatValue("nvsAvailable", { decimals: 0 })),
   ]));
 }
 

@@ -4672,6 +4672,8 @@ export default {
     reasonElementOnlyCopy: "Element only is on: the heat pumps stay off and the element keeps the tank warm (CM11).",
     reasonDhwCleared: "Hot water request finished",
     reasonDhwClearedCopy: "The hot water cycle finished or stopped; control returns to normal.",
+    nvsLow: "Storage nearly full",
+    nvsLowValue: "{entries} free: changes may not be saved",
   },
   overview: {
     monitoringTitle: "Installation monitoring",
@@ -5221,5 +5223,7 @@ export default {
     benchStatusOff: "Off",
     benchStatusExpired: "Expired",
     benchStatusNotAllowed: "Not allowed",
+    nvsTitle: "Free storage (NVS)",
+    nvsCopy: "Free slots for stored settings. Below 20, changes may no longer be saved. Measured after startup and then every hour.",
   },
 };

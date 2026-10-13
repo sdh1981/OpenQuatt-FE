@@ -285,6 +285,8 @@ Onder `Installatiebewaking` zie je per warmtepomp actieve en herstellende incide
 
 Alleen in OpenQuatt FE: de driewegklep (R1) en het element (R2) los schakelen, met de teststatus, de klepstand volgens de terugmelding en de gevonden 1-Wire-adressen. De testschakelaars gaan niet mee in de back-up.
 
+Daar staat ook **Vrije opslag (NVS)**: het aantal vrije plaatsen voor bewaarde instellingen, gemeten na het opstarten en daarna elk uur. Onder 20 toont de warmwaterkaart een waarschuwing, omdat gewijzigde instellingen dan mogelijk niet meer bewaard worden. Zie `fe/nvs-voorstel.md` in de FE-repository.
+
 ### Systeem
 
 #### Toegang en beveiliging
