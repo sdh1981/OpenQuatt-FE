@@ -1,0 +1,78 @@
+import { ENTITY_DEFS } from "./config.js";
+import { t } from "../i18n/index.js";
+
+// OpenQuatt FE: meldingen ("… ingeschakeld", "… bijgewerkt") gebruiken de
+// vertaalde titel uit de app in plaats van de firmwarenaam van de entiteit.
+const FE_ENTITY_LABEL_KEYS = [
+  ["dhwFlowMin", "settingsDhw.flowMinTitle"],
+  ["dhwFlowMax", "settingsDhw.flowMaxTitle"],
+  ["dhwLockout", "settingsDhw.lockoutTitle"],
+  ["dhwStartTop", "settingsDhw.startTopTitle"],
+  ["dhwHpStopTop", "settingsDhw.hpStopTopTitle"],
+  ["dhwHpLevel", "settingsDhw.hpLevelTitle"],
+  ["dhwFlowSetpoint", "settingsDhw.flowSetpointTitle"],
+  ["dhwMinRest", "settingsDhw.minRestTitle"],
+  ["dhwBoostAfterHp", "settingsDhw.boostAfterHpTitle"],
+  ["dhwBoostTarget", "settingsDhw.boostTargetTitle"],
+  ["dhwWindowEnable", "settingsDhw.windowTitle"],
+  ["dhwWindowStart", "settingsDhw.windowStartTitle"],
+  ["dhwWindowEnd", "settingsDhw.windowEndTitle"],
+  ["dhwCoilMapT1", "settingsDhw.coilMapT1Title"],
+  ["dhwCoilMapT2", "settingsDhw.coilMapT2Title"],
+  ["dhwCoilMapT3", "settingsDhw.coilMapT3Title"],
+  ["dhwCoilMapHyst", "settingsDhw.coilMapHystTitle"],
+  ["dhwAssistMaxLevel", "settingsDhw.assistMaxLevelTitle"],
+  ["dhwAssistMinRise", "settingsDhw.assistMinRiseTitle"],
+  ["dhwAssistMaxDischarge", "settingsDhw.assistMaxDischargeTitle"],
+  ["dhwAssistMaxWaterOut", "settingsDhw.assistMaxWaterOutTitle"],
+  ["dhwAssistBottomStop", "settingsDhw.assistBottomStopTitle"],
+  ["dhwAssistWaterRelease", "settingsDhw.assistWaterReleaseTitle"],
+  ["dhwCoilMapEnable", "settingsDhw.coilMapTitle"],
+  ["dhwSoftStartStep", "settingsDhw.softStartTitle"],
+  ["dhwSingleHpMode", "settingsDhw.singleHpTitle"],
+  ["dhwSingleHpBump", "settingsDhw.singleHpBumpTitle"],
+  ["dhwAssistEnable", "settingsDhw.assistTitle"],
+  ["dhwBoostNowTarget", "settingsDhw.boostNowTargetTitle"],
+  ["dhwBoostNowHpStop", "settingsDhw.boostNowHpStopTitle"],
+  ["dhwBoostHpAssist", "settingsDhw.boostHpAssistTitle"],
+  ["dhwBoostAssistBottom", "settingsDhw.boostAssistBottomTitle"],
+  ["dhwBoostAssistStopTop", "settingsDhw.boostAssistStopTopTitle"],
+  ["dhwLegionellaTarget", "settingsDhw.legionellaTargetTitle"],
+  ["dhwLegionellaHandover", "settingsDhw.legionellaHandoverTitle"],
+  ["dhwLegionellaCeiling", "settingsDhw.legionellaCeilingTitle"],
+  ["dhwLegionellaCoilCirculation", "settingsDhw.coilCirculationTitle"],
+  ["dhwLegionellaLastRun", "settingsDhw.legionellaLastRunTitle"],
+  ["dhwLegionellaNextRun", "settingsDhw.legionellaNextRunTitle"],
+  ["dhwElementOnly", "settingsDhw.elementOnlyTitle"],
+  ["dhwElementOnlyTarget", "settingsDhw.elementOnlyTargetTitle"],
+  ["dhwElementOnlyOffDelta", "settingsDhw.elementOnlyOffDeltaTitle"],
+  ["dhwTapDetectEnable", "settingsDhw.tapDetectTitle"],
+  ["dhwTapThreshold", "settingsDhw.tapThresholdTitle"],
+  ["dhwTankVolume", "settingsDhw.tankVolumeTitle"],
+  ["dhwRoomTemp", "settingsDhw.roomTempTitle"],
+  ["dhwRoomTempActive", "settingsDhw.roomTempActiveTitle"],
+  ["dhwUa", "settingsDhw.uaTitle"],
+  ["dhwUaSamples", "settingsDhw.uaSamplesTitle"],
+  ["dhwTestValve", "settingsDhw.benchValveTitle"],
+  ["dhwTestValveStatus", "settingsDhw.benchValveStatusTitle"],
+  ["dhwValvePosition", "settingsDhw.benchValvePositionTitle"],
+  ["dhwTestElement", "settingsDhw.benchElementTitle"],
+  ["dhwTestElementStatus", "settingsDhw.benchElementStatusTitle"],
+  ["dhwElementActive", "settingsDhw.benchElementActiveTitle"],
+  ["dhwOneWireAddresses", "settingsDhw.benchAddressesTitle"],
+  ["nvsAvailable", "settingsDhw.nvsTitle"],
+  ["dhwRoomTempSource", "settingsDhw.roomTempSourceTitle"],
+  ["dhwResetStandbyLoss", "settingsDhw.resetLearningButton"],
+  ["dhwBoostNow", "overviewDhw.boostStart"],
+  ["dhwLegionellaForce", "overviewDhw.legionellaStart"],
+  ["dhwClearFault", "overviewDhw.clearFault"],
+];
+
+const LABEL_KEY_BY_NAME = new Map(
+  FE_ENTITY_LABEL_KEYS.filter(([key]) => ENTITY_DEFS[key]).map(([key, labelKey]) => [ENTITY_DEFS[key].name, labelKey]),
+);
+
+export function entityNoticeName(entity) {
+  const labelKey = LABEL_KEY_BY_NAME.get(entity?.name);
+  return labelKey ? t(labelKey) : entity?.name;
+}

@@ -5092,7 +5092,7 @@ export default {
     sectionGroup: "Warm water",
     controlSection: "Regeling",
     controlSectionCopy: "Wanneer de warmtepompen de boiler opwarmen en hoe hard.",
-    lockoutTitle: "DHW lockout",
+    lockoutTitle: "Warm water blokkeren",
     lockoutCopy: "Blokkeert alle warmwatercycli. Een lopende cyclus gaat in storing.",
     startTopTitle: "Start onder tank top",
     startTopCopy: "Een cyclus start als tank top onder deze temperatuur zakt.",

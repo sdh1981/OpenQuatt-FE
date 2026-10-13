@@ -81,6 +81,7 @@ class Runtime {
     }
     const oq_dhw::Outputs out = controller_.tick(in, cfg);
     last_out_ = out;
+    if (out.state_changed && out.state == oq_dhw::State::FAULT) release_requests_on_fault_(out.fault);
     idle_ = out.state == oq_dhw::State::IDLE_CV && out.fault == oq_dhw::Fault::NONE;
 
     // Element-only-thermostaat op tank bottom, alleen in CM11 zelf.
@@ -108,6 +109,19 @@ class Runtime {
   }
 
  private:
+  // Bij een storing vervalt een gevraagde snelboost of legionella-run. Zonder
+  // dit blijft de schakelaar aan en start de vraag direct na "Storing wissen".
+  static void release_requests_on_fault_(oq_dhw::Fault fault) {
+    if (id(oq_dhw_boost_now).state) {
+      ESP_LOGW("fe.dhw", "Fault %s: quick boost request cancelled", oq_dhw::fault_name(fault));
+      id(oq_dhw_boost_now).turn_off();
+    }
+    if (id(oq_dhw_src_legionella_force).state) {
+      ESP_LOGW("fe.dhw", "Fault %s: forced legionella request cancelled", oq_dhw::fault_name(fault));
+      id(oq_dhw_src_legionella_force).turn_off();
+    }
+  }
+
   oq_dhw::Config config_() const {
     oq_dhw::Config cfg;
     cfg.start_top_c = id(oq_dhw_start_top_c).state;

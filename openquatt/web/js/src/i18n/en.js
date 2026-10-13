@@ -5092,7 +5092,7 @@ export default {
     sectionGroup: "Hot water",
     controlSection: "Control",
     controlSectionCopy: "When the heat pumps heat the tank and how hard.",
-    lockoutTitle: "DHW lockout",
+    lockoutTitle: "Hot water lockout",
     lockoutCopy: "Blocks all hot water cycles. A running cycle goes into fault.",
     startTopTitle: "Start below tank top",
     startTopCopy: "A cycle starts when the tank top drops below this temperature.",

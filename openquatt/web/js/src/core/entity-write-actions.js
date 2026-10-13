@@ -13,6 +13,7 @@ import { setAppView } from "./navigation.js";
 import { updateCurvePointDraft } from "./simple-curve.js";
 import { render } from "./render-scheduler.js";
 import { t } from "../i18n/index.js";
+import { entityNoticeName } from "./fe-entity-labels.js";
 import { clearQuickStartSetupInstall, state } from "./state.js";
 import { pollFirmwareUpdateState, primeFirmwareUpdateState } from "../features/firmware-update.js";
 import { updateFirmwareState } from "./feature-state.js";
@@ -46,7 +47,7 @@ async function commitTelemetrySwitch({ key, choiceKey, extraRefreshKeys = [], wa
       throw new Error(t("actions.savedChoiceNotConfirmed"));
     }
     state.controlError = "";
-    state.controlNotice = t(enabled ? "actions.entityEnabled" : "actions.entityDisabled", { name: entity.name });
+    state.controlNotice = t(enabled ? "actions.entityEnabled" : "actions.entityDisabled", { name: entityNoticeName(entity) });
   } catch (error) {
     let disabledConfirmed = false;
     try {
@@ -162,7 +163,7 @@ export async function commitSelect(key, option) {
         ? option === "Automatic"
           ? t("actions.autoDetect")
           : t("actions.switchStarted", { option })
-      : t("actions.entityUpdated", { name: entity.name });
+      : t("actions.entityUpdated", { name: entityNoticeName(entity) });
     if (key === "firmwareUpdateChannel") {
       updateFirmwareState({ updateInstallCompleted: false, updateInstallCompletedVersion: "" });
       state.entities.firmwareUpdateChannel = {
@@ -194,7 +195,7 @@ export async function commitSelect(key, option) {
     if (!verifyControlModeOverride && previousEntity) {
       state.entities[key] = previousEntity;
     }
-    state.controlError = t("actions.entityUpdateFailed", { name: entity.name, error: error.message });
+    state.controlError = t("actions.entityUpdateFailed", { name: entityNoticeName(entity), error: error.message });
     return false;
   } finally {
     state.busyAction = "";
@@ -266,7 +267,7 @@ export async function commitSwitch(key, enabled) {
       value: enabled,
       state: enabled,
     };
-    state.controlNotice = t(enabled ? "actions.entityEnabled" : "actions.entityDisabled", { name: entity.name });
+    state.controlNotice = t(enabled ? "actions.entityEnabled" : "actions.entityDisabled", { name: entityNoticeName(entity) });
     state.busyAction = "";
     if (state.appView === "overview") {
       await refreshEntities([...OVERVIEW_KEYS, ...HEADER_ENTITY_KEYS, "setupComplete", ...FIRMWARE_ENTITY_KEYS], "state");
@@ -280,7 +281,7 @@ export async function commitSwitch(key, enabled) {
     }
     render();
   } catch (error) {
-    state.controlError = t("actions.entityAdjustFailed", { name: entity.name, error: error.message });
+    state.controlError = t("actions.entityAdjustFailed", { name: entityNoticeName(entity), error: error.message });
     render();
   } finally {
     state.busyAction = "";
@@ -319,7 +320,7 @@ export async function commitNumber(key, value, successNotice = "") {
     delete state.drafts[key];
     delete state.inputDrafts[key];
     succeeded = true;
-    state.controlNotice = successNotice || t("actions.entityUpdated", { name: entity.name });
+    state.controlNotice = successNotice || t("actions.entityUpdated", { name: entityNoticeName(entity) });
     await refreshEntities(
       state.appView === "settings"
         ? getSettingsRefreshKeys()
@@ -329,7 +330,7 @@ export async function commitNumber(key, value, successNotice = "") {
     );
   } catch (error) {
     state.inputDrafts[key] = String(normalized).replace(".", ",");
-    state.controlError = t("actions.entityUpdateFailed", { name: entity.name, error: error.message });
+    state.controlError = t("actions.entityUpdateFailed", { name: entityNoticeName(entity), error: error.message });
   } finally {
     state.busyAction = "";
     render();
@@ -403,11 +404,11 @@ export async function commitTime(key, value) {
       throw new Error(t("actions.timeNotConfirmed"));
     }
     delete state.inputDrafts[key];
-    state.controlNotice = t("actions.entityUpdated", { name: entity.name });
+    state.controlNotice = t("actions.entityUpdated", { name: entityNoticeName(entity) });
     return true;
   } catch (error) {
     // Keep the attempted value visible so the user can retry without retyping.
-    state.controlError = t("actions.entityUpdateFailed", { name: entity.name, error: error.message });
+    state.controlError = t("actions.entityUpdateFailed", { name: entityNoticeName(entity), error: error.message });
     return false;
   } finally {
     state.savingTimeFields.delete(key);
@@ -442,7 +443,7 @@ export async function commitText(key, value) {
     };
     delete state.drafts[key];
     delete state.inputDrafts[key];
-    state.controlNotice = t("actions.entityUpdated", { name: entity.name });
+    state.controlNotice = t("actions.entityUpdated", { name: entityNoticeName(entity) });
     await refreshEntities(
       state.appView === "settings"
         ? getSettingsRefreshKeys()
@@ -451,7 +452,7 @@ export async function commitText(key, value) {
     );
   } catch (error) {
     state.inputDrafts[key] = normalized;
-    state.controlError = t("actions.entityUpdateFailed", { name: entity.name, error: error.message });
+    state.controlError = t("actions.entityUpdateFailed", { name: entityNoticeName(entity), error: error.message });
   } finally {
     state.busyAction = "";
     render();
@@ -508,7 +509,7 @@ export async function commitDateTime(key, value) {
 
   try {
     await postDateTimeValue(key, normalized);
-    state.controlNotice = t("actions.entityUpdated", { name: entity.name });
+    state.controlNotice = t("actions.entityUpdated", { name: entityNoticeName(entity) });
     await refreshEntities(
       state.appView === "settings"
         ? getSettingsRefreshKeys()
@@ -516,7 +517,7 @@ export async function commitDateTime(key, value) {
       "state"
     );
   } catch (error) {
-    state.controlError = t("actions.entityUpdateFailed", { name: entity.name, error: error.message });
+    state.controlError = t("actions.entityUpdateFailed", { name: entityNoticeName(entity), error: error.message });
   } finally {
     state.busyAction = "";
     render();
@@ -620,7 +621,7 @@ export async function triggerButton(action) {
     setAppView("overview", { syncMode: "replace" });
     syncEntities({ forceFast: true });
   } catch (error) {
-    state.controlError = t("actions.actionFailedFor", { name: entity.name, error: error.message });
+    state.controlError = t("actions.actionFailedFor", { name: entityNoticeName(entity), error: error.message });
   } finally {
     state.busyAction = "";
     render();
@@ -844,7 +845,7 @@ export async function triggerNamedButton(key, options = {}) {
       if (refreshAfterRestart) {
         clearRestartRefresh();
       }
-      state.controlError = t("actions.actionFailedWithPrefix", { prefix: options.errorPrefix || t("actions.actionFailedName", { name: entity.name }), error: error.message });
+      state.controlError = t("actions.actionFailedWithPrefix", { prefix: options.errorPrefix || t("actions.actionFailedName", { name: entityNoticeName(entity) }), error: error.message });
     }
   } finally {
     state.busyAction = "";
