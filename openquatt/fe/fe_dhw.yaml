@@ -30,7 +30,7 @@ number:
     step: 0.5
     initial_value: 46
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -44,7 +44,7 @@ number:
     step: 0.5
     initial_value: 49
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -57,7 +57,7 @@ number:
     step: 1
     initial_value: 4
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -71,7 +71,7 @@ number:
     step: 10
     initial_value: 1000
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -85,7 +85,7 @@ number:
     step: 10
     initial_value: 750
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -99,7 +99,7 @@ number:
     step: 10
     initial_value: 1800
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -113,7 +113,7 @@ number:
     step: 60
     initial_value: 1200
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -127,7 +127,7 @@ number:
     step: 0.5
     initial_value: 55
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -141,7 +141,7 @@ number:
     step: 0.5
     initial_value: 56
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -155,7 +155,7 @@ number:
     step: 1
     initial_value: 35
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -169,7 +169,7 @@ number:
     step: 0.5
     initial_value: 52
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -183,7 +183,7 @@ number:
     step: 0.5
     initial_value: 60
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -197,7 +197,7 @@ number:
     step: 0.5
     initial_value: 55
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -211,7 +211,7 @@ number:
     step: 0.5
     initial_value: 68
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -225,7 +225,7 @@ number:
     step: 0.5
     initial_value: 53
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -239,7 +239,7 @@ number:
     step: 0.5
     initial_value: 55
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -253,7 +253,7 @@ number:
     step: 1
     initial_value: 0
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -267,7 +267,7 @@ number:
     step: 1
     initial_value: 7
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -281,7 +281,7 @@ number:
     step: 0.5
     initial_value: 40
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -295,7 +295,7 @@ number:
     step: 0.5
     initial_value: 44
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -309,7 +309,7 @@ number:
     step: 0.5
     initial_value: 48
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -323,7 +323,7 @@ number:
     step: 0.1
     initial_value: 0.5
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -336,7 +336,7 @@ number:
     step: 1
     initial_value: 0
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -350,7 +350,7 @@ number:
     step: 1
     initial_value: 3
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -364,7 +364,7 @@ number:
     step: 1
     initial_value: 3
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -378,7 +378,7 @@ number:
     step: 0.01
     initial_value: 0.1
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -392,7 +392,7 @@ number:
     step: 1
     initial_value: 90
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -406,7 +406,7 @@ number:
     step: 0.5
     initial_value: 57
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -420,7 +420,7 @@ number:
     step: 0.5
     initial_value: 48
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
   - platform: template
@@ -434,7 +434,7 @@ number:
     step: 0.5
     initial_value: 50
     optimistic: true
-    restore_value: true
+    restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
 switch:
@@ -444,7 +444,7 @@ switch:
     icon: mdi:lock
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: ALWAYS_OFF  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_boost_after_hp
@@ -452,7 +452,7 @@ switch:
     icon: mdi:heating-coil
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_boost_hp_assist_enable
@@ -460,7 +460,7 @@ switch:
     icon: mdi:heat-pump
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: ALWAYS_OFF  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_window_enable
@@ -468,7 +468,7 @@ switch:
     icon: mdi:clock-outline
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: ALWAYS_OFF  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_legionella_coil_circulation_enable
@@ -476,7 +476,7 @@ switch:
     icon: mdi:sync
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_coil_map_enable
@@ -484,7 +484,7 @@ switch:
     icon: mdi:stairs
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_single_hp_mode
@@ -492,7 +492,7 @@ switch:
     icon: mdi:numeric-1-box
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: ALWAYS_OFF  # stand komt uit het DHW-instellingenrecord
 
   - platform: template
     id: oq_dhw_assist_enable
@@ -500,7 +500,7 @@ switch:
     icon: mdi:numeric-2-box
     entity_category: config
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON  # stand komt uit het DHW-instellingenrecord
 
   # Bewust niet bewaard over een herstart: een snelboost of een geforceerde
   # legionella-run hoort niet vanzelf terug te komen.

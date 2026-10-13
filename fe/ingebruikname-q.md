@@ -7,7 +7,7 @@ Checklist voor het in gebruik nemen van de Heatpump Controller Q met de FE-firmw
 - [ ] **Bankproef afgerond:** R1, R2, klepstand, tanksensoren. Zie `fe/README.md` → Bankproef.
 - [ ] **NVS-meting gedaan en beoordeeld** volgens `fe/nvs-voorstel.md`. Vereist: **≥ 20 vrij** na het terugzetten van een volledige back-up. Tussen 20 en 100 komt eerst stap 2 (bundelen).
 - [ ] **Brug tussen GPIO44 en GND verwijderd.** Die zat er op de bank; met de brug meldt de klep altijd "Boiler".
-- [ ] **Firmware:** de nieuwste FE-versie uit `OpenQuatt-FE-firmware\`. Gebruik bij de eerste installatie `firmware.factory.bin` via USB, **met wissen**.
+- [ ] **Firmware:** de nieuwste FE-versie uit `OpenQuatt-FE-firmware\` (minimaal fe.14). Gebruik bij de eerste installatie `firmware.factory.bin` via USB, **met wissen**. Vanaf fe.14 staan de DHW-instellingen in één record; een update vanaf een oudere versie zonder wissen zet ze terug op de standaard en laat de oude losse sleutels ruimte innemen.
 
 ## 1. Bedrading
 
