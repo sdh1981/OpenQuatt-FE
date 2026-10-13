@@ -10,9 +10,7 @@
 #   - Apparaatnaam "openquatt" (standaard); anders het voorvoegsel van de
 #     entity-ids aanpassen.
 #
-# Regelmodi op FE: CM10 = warm water, CM11 = alleen element. Automatiseringen
-# uit de LilyGO-fork die op CM4 (DHW) of CM6 (alleen element) letten, moeten
-# naar CM10 en CM11.
+# Regelmodi op FE: CM10 = warm water, CM11 = alleen element.
 # ==============================================================================
 title: Warm water
 path: warm-water

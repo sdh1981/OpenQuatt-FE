@@ -83,7 +83,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | — | Upstream-merge v0.53.0 → v0.54.1 | fe.11 |
 | NVS-1 | Meting vrije NVS-entries: log, sensor "NVS vrije entries", waarschuwing onder 20. Voorstel: `fe/nvs-voorstel.md` | fe.12 |
 | — | Bij een storing gaan Snelboost en Legionella nu uit; meldingen tonen de vertaalde naam | fe.13 |
-| 6 | Bankproef op de Q (incl. NVS-meetprotocol), daarna overstap van de LilyGO | gepland |
+| 6 | Bankproef en ingebruikname van de Q (incl. NVS-meetprotocol). Checklist: `fe/ingebruikname-q.md` | bankproef klaar; ingebruikname gepland |
 
 ## Haken in upstream-bestanden
 
@@ -105,7 +105,7 @@ Elke haak staat achter `#if OQ_FE_TARGET` of is in een upstream-build onbereikba
 
 Warm water krijgt **CM10**. Dat nummer komt van upstream (Jeroen, 07-10-2026), zodat FE en upstream dezelfde nummering delen. Element-only (legionella of boost zonder warmtepomp) krijgt voorlopig **CM11**; dat nummer is nog niet met upstream afgestemd.
 
-Upstream gebruikt CM0–CM5, CM98 en CM100. CM4 is daar "alleen ketel na een warmtepompstoring" en dus niet bruikbaar voor DHW, zoals in de LilyGO-build. In fase 4 staan de nummers op één plek als constante. HA-dashboards en automatiseringen uit de LilyGO-build (DHW = CM4, element-only = CM6) moeten bij de overstap mee.
+Upstream gebruikt CM0–CM5, CM98 en CM100. CM4 is daar "alleen ketel na een warmtepompstoring" en dus niet bruikbaar voor DHW. In fase 4 staan de nummers op één plek als constante.
 
 ## Versies
 
