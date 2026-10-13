@@ -73,3 +73,16 @@ test("CM10/CM11 decision log reasons have their own label", async () => {
     assert.ok(meta, `${code} has a meta entry`);
   }
 });
+
+test("a nearly full NVS shows a warning on the hot water card", () => {
+  const base = { dhwState: { state: "IDLE_CV", value: "IDLE_CV" } };
+  withEntities({ ...base, nvsAvailable: { state: "168", value: 168 } }, () => {
+    assert.ok(!getOverviewDhwModel().rows.some((row) => row.tone === "warn"));
+  });
+  withEntities({ ...base, nvsAvailable: { state: "12", value: 12 } }, () => {
+    assert.ok(getOverviewDhwModel().rows.some((row) => row.tone === "warn"));
+  });
+  withEntities(base, () => {
+    assert.ok(!getOverviewDhwModel().rows.some((row) => row.tone === "warn"));
+  });
+});

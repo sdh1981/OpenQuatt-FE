@@ -37,6 +37,7 @@ const INTENTIONAL_INTERNAL_VALUES = new Map([
     "DHW ruimtetemperatuur actief",
     "DHW ruimtetemperatuur bron",
     "DHW tappingen vandaag",
+    "NVS vrije entries",
   ])],
   ["features/control-replay-view.js", new Set(["CV-ketel", "Koeling"])],
   ["features/device-context.js", new Set(["onbekend"])],

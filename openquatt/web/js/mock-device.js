@@ -2553,6 +2553,7 @@
     setEntity("text_sensor", "DHW Test Valve Status", { state: "Off", value: "Off" });
     setEntity("text_sensor", "DHW Test Element Status", { state: "Off", value: "Off" });
     setEntity("binary_sensor", "DHW Valve Feedback", { value: true });
+    setEntity("sensor", "NVS vrije entries", { value: 168 });
     setEntity("text_sensor", "DHW 1-Wire adressen", { state: "0x5000000048509928, 0x6700000022860328", value: "0x5000000048509928, 0x6700000022860328" });
 
     applyCoolingDewPointSourceSelection();

@@ -697,6 +697,7 @@
     ["dhwTestElementStatus", DOMAIN_TEXT_SENSOR, "DHW Test Element Status"],
     ["dhwValveFeedback", DOMAIN_BINARY_SENSOR, "DHW Valve Feedback"],
     ["dhwOneWireAddresses", DOMAIN_TEXT_SENSOR, "DHW 1-Wire adressen"],
+    ["nvsAvailable", DOMAIN_SENSOR, "NVS vrije entries"],
     ["dhwLegionellaLastRun", DOMAIN_TEXT_SENSOR, "DHW legionella laatste run"],
     ["dhwLegionellaNextRun", DOMAIN_TEXT_SENSOR, "DHW legionella volgende run"],
     ["dhwUa", DOMAIN_SENSOR, "DHW tank standby loss"],
@@ -1771,6 +1772,7 @@
     "dhwLegionellaForce",
     "dhwLockout",
     "dhwClearFault",
+    "nvsAvailable",
   ];
   // OpenQuatt FE: bankproef onder Service. Bewust niet in de back-up.
   export const DHW_BENCH_KEYS = [
@@ -1783,6 +1785,7 @@
     "dhwValvePosition",
     "dhwElementActive",
     "dhwOneWireAddresses",
+    "nvsAvailable",
   ];
   export const OVERVIEW_KEYS = [
     "strategy",
