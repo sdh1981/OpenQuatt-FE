@@ -86,3 +86,10 @@ test("a nearly full NVS shows a warning on the hot water card", () => {
     assert.ok(!getOverviewDhwModel().rows.some((row) => row.tone === "warn"));
   });
 });
+
+test("notices name FE entities by their translated title", async () => {
+  const { entityNoticeName } = await import("../js/src/core/fe-entity-labels.js");
+  assert.equal(entityNoticeName(ENTITY_DEFS.dhwBoostNow), "Snelboost");
+  assert.notEqual(entityNoticeName(ENTITY_DEFS.dhwLockout), "DHW lockout");
+  assert.equal(entityNoticeName({ name: "Silent Mode Override" }), "Silent Mode Override");
+});

@@ -82,6 +82,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | 5d-2 | HA-bestanden in `fe/dashboard/`: package, tankkaarten en de view "Warm water". | geen firmware |
 | — | Upstream-merge v0.53.0 → v0.54.1 | fe.11 |
 | NVS-1 | Meting vrije NVS-entries: log, sensor "NVS vrije entries", waarschuwing onder 20. Voorstel: `fe/nvs-voorstel.md` | fe.12 |
+| — | Bij een storing gaan Snelboost en Legionella nu uit; meldingen tonen de vertaalde naam | fe.13 |
 | 6 | Bankproef op de Q (incl. NVS-meetprotocol), daarna overstap van de LilyGO | gepland |
 
 ## Haken in upstream-bestanden
