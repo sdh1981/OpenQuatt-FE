@@ -50,6 +50,7 @@ const boundaryAllowedEdges = new Set([
   "core/entity-sync.js -> features/mqtt-actions.js",
   "core/entity-sync.js -> features/house-learning.js",
   "core/entity-sync.js -> features/odu-eeprom-dump.js",
+  "core/entity-sync.js -> features/odu-firmware.js",
   "core/entity-sync.js -> features/odu-defrost.js",
   "core/entity-sync.js -> features/odu-runtime-frequency.js",
   "core/entity-sync.js -> features/odu-settings.js",

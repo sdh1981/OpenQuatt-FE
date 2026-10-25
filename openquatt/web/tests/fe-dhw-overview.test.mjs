@@ -93,3 +93,7 @@ test("notices name FE entities by their translated title", async () => {
   assert.notEqual(entityNoticeName(ENTITY_DEFS.dhwLockout), "DHW lockout");
   assert.equal(entityNoticeName({ name: "Silent Mode Override" }), "Silent Mode Override");
 });
+
+test("the no-flow fault of an inline element is translated", () => {
+  assert.notEqual(formatDhwFault("ELEMENT_NO_FLOW"), "ELEMENT_NO_FLOW");
+});

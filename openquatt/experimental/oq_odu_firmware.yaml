@@ -1,0 +1,50 @@
+# Opt-in local prototype. Not included in any release target.
+# Keep writes disabled for offline validation. Only a previously authorized,
+# durably recorded update may resume automatically; fresh uploads never start one.
+substitutions:
+  oq_odu_firmware_allow_writes: "false"
+
+external_components:
+  - source:
+      type: local
+      path: ${external_components_path}
+    components: [openquatt_odu_firmware]
+
+openquatt_odu_firmware:
+  id: oq_odu_firmware_updater
+  hub: mod_bus
+  web_auth: oq_web_auth_store
+  duo: ${flow_secondary_enabled}
+  allow_writes: ${oq_odu_firmware_allow_writes}
+  auto_resume: true
+  hold_control: !lambda |-
+    // Recovery owns the bus even when restored switch state was Enabled.
+    if (id(oq_enabled).state) id(oq_enabled).turn_off();
+    if (id(oq_openquatt_resume_at).year >= 2024) {
+      auto call = id(oq_openquatt_resume_at).make_call();
+      call.set_datetime(2000, 1, 1, 0, 0, 0);
+      call.perform();
+    }
+  safe_to_start: !lambda |-
+    if (id(oq_enabled).state || id(oq_control_mode_code) != 0 ||
+        id(oq_commissioning_active) || id(oq_commissioning_request_pending) ||
+        id(oq_runtime_polling_paused).state || id(oq_firmware_target_install_active) ||
+        id(hp1_odu_eeprom_dump).is_active() || id(hp1_odu_defrost).busy()) return false;
+    const uint64_t now = oq_sources::monotonic_ms();
+    const auto idle = [now](const oq_sources::HeatPumpReceipts& hp) {
+      return hp.working_mode.fresh(now, 15000) && hp.working_mode.value == 0 &&
+             hp.compressor_frequency.fresh(now, 15000) && hp.compressor_frequency.value == 0;
+    };
+    if (!id(hp1_is_online) || !idle(oq_sources::hp1)) return false;
+    #if OQ_TOPOLOGY_DUO
+    if (!id(${secondary_hp_id}_is_online) || !idle(oq_sources::hp2) ||
+        id(${secondary_hp_id}_odu_eeprom_dump).is_active() ||
+        id(${secondary_hp_id}_odu_defrost).busy()) return false;
+    #endif
+    return true;
+  safe_to_continue: !lambda |-
+    // Live ODU telemetry necessarily stops during the exclusive bootloader
+    // session. Only controller/service state is tested after the initial gate.
+    return !id(oq_enabled).state && id(oq_control_mode_code) == 0 &&
+           !id(oq_commissioning_active) && !id(oq_commissioning_request_pending) &&
+           !id(oq_runtime_polling_paused).state && !id(oq_firmware_target_install_active);

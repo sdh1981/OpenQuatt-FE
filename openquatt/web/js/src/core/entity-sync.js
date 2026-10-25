@@ -25,6 +25,7 @@ import { clearWebServerLogOutput, closeWebServerLogStream, resetWebServerLogReco
 import { getMqttSensorsModalRenderSignature, refreshMqttStatus, shouldRefreshMqttStatusForCurrentSurface } from "../features/mqtt-actions.js";
 import { refreshApiSecurityStatus, refreshAuthStatus, shouldRefreshApiSecurityStatusForCurrentSurface, shouldRefreshAuthStatusForCurrentSurface } from "../features/security-actions.js";
 import { refreshOduEepromDumpStatuses, shouldRefreshOduEepromDumpSurface } from "../features/odu-eeprom-dump.js";
+import { applyOduFirmwareCapability } from "../features/odu-firmware.js";
 import { refreshOduDefrostStatuses, shouldRefreshOduDefrostSurface } from "../features/odu-defrost.js";
 import { refreshOduRuntimeFrequencyStatuses, shouldRefreshOduRuntimeFrequencySurface } from "../features/odu-runtime-frequency.js";
 import { refreshHouseLearningStatus, shouldRefreshHouseLearningStatusSurface } from "../features/house-learning.js";
@@ -1070,6 +1071,7 @@ import { fetchWithTimeout } from "./browser-utils.js";
       }
 
       const { chunk, payload } = result.value;
+      applyOduFirmwareCapability(payload);
       const entities = payload?.entities && typeof payload.entities === "object" ? payload.entities : {};
       const missing = new Set(Array.isArray(payload?.missing) ? payload.missing : []);
 

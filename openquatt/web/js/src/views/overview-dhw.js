@@ -26,6 +26,7 @@ const DHW_FAULT_LABEL_KEYS = Object.freeze({
   FLOW_OUT_OF_RANGE: "overviewDhw.faultFlow",
   TIMEOUT: "overviewDhw.faultTimeout",
   LOCKOUT: "overviewDhw.faultLockout",
+  ELEMENT_NO_FLOW: "overviewDhw.faultElementNoFlow",
 });
 
 const DHW_VALVE_LABEL_KEYS = Object.freeze({

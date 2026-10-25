@@ -7,6 +7,7 @@ import { getHpWaterRawValue } from "./water.js";
 import { escapeHtml } from "../core/html.js";
 import { renderModalShell } from "../core/modal-shell.js";
 import { formatNumber, t } from "../i18n/index.js";
+import { ODU_FIRMWARE_PAGE } from "../features/odu-firmware.js";
 
   export function getManualHpActualValue(levelKey, frequencyKey) {
     const level = getEntityNumericValue(levelKey);
@@ -1250,6 +1251,7 @@ import { formatNumber, t } from "../i18n/index.js";
           <div class="oq-settings-system-summary oq-settings-service-task-list">
             ${service.tasks.map((task) => renderSettingsServiceTaskRow(task)).join("")}
             ${renderSettingsOduEepromDumpRow()}
+            ${renderSettingsOduFirmwareRow()}
           </div>
         </div>
       `,
@@ -1263,6 +1265,17 @@ import { formatNumber, t } from "../i18n/index.js";
       value: t("settingsService.eepromValue"),
       note: t("settingsService.eepromNote"),
       action: `<button class="oq-helper-button oq-helper-button--ghost" type="button" data-oq-action="open-odu-eeprom-dump-modal">${escapeHtml(t("settingsInstallation.openAction"))}</button>`,
+    });
+  }
+
+  export function renderSettingsOduFirmwareRow() {
+    if (!state.oduFirmwareAvailable) return "";
+    return renderSettingsSystemRow({
+      className: "oq-settings-service-row",
+      label: t("settingsService.oduFirmwareLabel"),
+      value: t("settingsService.oduFirmwareValue"),
+      note: t("settingsService.oduFirmwareNote"),
+      action: `<a class="oq-helper-button oq-helper-button--ghost" href="${ODU_FIRMWARE_PAGE}">${escapeHtml(t("settingsInstallation.openAction"))}</a>`,
     });
   }
 

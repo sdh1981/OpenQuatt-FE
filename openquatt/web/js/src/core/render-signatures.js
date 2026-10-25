@@ -38,6 +38,7 @@ export function getSettingsRenderSignature() {
   return [
     state.appView,
     state.settingsGroup,
+    state.oduFirmwareAvailable,
     state.busyAction,
     state.loadingEntities ? "loading" : "ready",
     state.incidentMonitoringSignature,

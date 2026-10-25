@@ -12,6 +12,7 @@
 #include "oq_fe_dhw_bridge.h"
 #include "oq_fe_dhw_levels_logic.h"
 #include "oq_fe_dhw_settings_store.h"
+#include "oq_fe_element_logic.h"
 #include "oq_fe_dhw_tank_logic.h"
 #include "oq_fe_io_runtime.h"
 
@@ -73,8 +74,13 @@ class Runtime {
     }
 
     const bool element_only = id(oq_dhw_element_only_enable).state;
-    const oq_dhw::Config cfg = config_();
+    const bool inline_element = inline_element_();
+    oq_dhw::Config cfg = config_();
+    // Doorstroomelement: het element heeft altijd flow nodig, dus de klep blijft
+    // in de elementfase van legionella op Boiler (de pompen draaien dan in CM10).
+    if (inline_element) cfg.legionella_use_coil_circulation = true;
     oq_dhw::Inputs in = inputs_(now_ms);
+    in.element_no_flow = inline_element && last_inline_.no_flow_fault;
     if (element_only) {
       // Element-only: geen nieuwe cycli en geen snelboost. Legionella mag wel
       // (de start-inhibit geldt niet voor legionella), en een lopende cyclus
@@ -87,27 +93,51 @@ class Runtime {
     if (out.state_changed && out.state == oq_dhw::State::FAULT) release_requests_on_fault_(out.fault);
     idle_ = out.state == oq_dhw::State::IDLE_CV && out.fault == oq_dhw::Fault::NONE;
 
-    // Element-only-thermostaat op tank bottom, alleen in CM11 zelf.
+    // Element-only-thermostaat op tank bottom. Tank: alleen in CM11 zelf.
+    // Doorstroom: ook zolang FE zelf circulatie vraagt voor het element (via CM1
+    // en CM10, terwijl de flow aanloopt); niet tijdens een DHW-cyclus of storing.
     const bool in_cm11 = id(oq_control_mode_code) == oq_fe_dhw_bridge::CM_ELEMENT_ONLY;
-    eo_on_ = in_cm11 && oq_fe_dhw_tank::element_only_on(eo_on_, !was_cm11_, id(fe_dhw_tank_bottom).state,
-                                                        id(oq_dhw_element_only_target_c).state,
-                                                        id(oq_dhw_element_only_off_delta_c).state);
-    was_cm11_ = in_cm11;
+    const bool eo_context = inline_element ? (element_only && idle_ && (in_cm11 || inline_circulation_)) : in_cm11;
+    eo_on_ = eo_context && oq_fe_dhw_tank::element_only_on(eo_on_, !was_cm11_, id(fe_dhw_tank_bottom).state,
+                                                           id(oq_dhw_element_only_target_c).state,
+                                                           id(oq_dhw_element_only_off_delta_c).state);
+    was_cm11_ = eo_context;
 
-    // Klep en element. Het element mag alleen op een bevestigde DHW-stand,
-    // behalve in de element-only-fase van legionella (klep bewust op CV). In
-    // CM11 vraagt ook de thermostaat om het element; de klep blijft dan op CV.
+    // Klep en element. Tank: het element mag alleen op een bevestigde DHW-stand,
+    // behalve in de element-only-fase van legionella (klep bewust op CV); in CM11
+    // vraagt ook de thermostaat om het element en blijft de klep op CV.
+    // Doorstroom: element alleen met bevestigde flow en een koele aanvoer, de
+    // klep op Boiler en de pompen aan zolang het element aan mag of nadraait.
     const bool valve_dhw_confirmed = !in.valve_feedback_valid || !in.valve_feedback_cv;
-    const bool legionella_element_only = out.element_on && !out.block_cv_priority;
-    const bool fsm_element = out.element_on && (valve_dhw_confirmed || legionella_element_only);
-    oq_fe_io_runtime::runtime().set_dhw_requests(out.valve_to_boiler, fsm_element || eo_on_);
+    bool valve_request = out.valve_to_boiler;
+    bool element_request = false;
+    if (inline_element) {
+      const bool requested = out.element_on || eo_on_;
+      const auto guard =
+          inline_guard_.update(requested, in.flow_lph, id(water_supply_temp_selected).state, now_ms, inline_config_());
+      log_inline_edges_(requested, guard);
+      last_inline_ = guard;
+      inline_circulation_ = guard.circulation;
+      valve_request = out.valve_to_boiler || guard.circulation;
+      element_request = guard.element_allowed && valve_dhw_confirmed;
+    } else {
+      inline_guard_.reset();
+      last_inline_ = oq_fe_element::InlineOutput{};
+      inline_circulation_ = false;
+      const bool legionella_element_only = out.element_on && !out.block_cv_priority;
+      const bool fsm_element = out.element_on && (valve_dhw_confirmed || legionella_element_only);
+      element_request = fsm_element || eo_on_;
+    }
+    oq_fe_io_runtime::runtime().set_dhw_requests(valve_request, element_request);
     const bool at_rest = out.state == oq_dhw::State::IDLE_CV || out.state == oq_dhw::State::FAULT;
     oq_fe_io_runtime::runtime().set_tests_allowed(oq_fe_io::bench_tests_allowed(at_rest, element_only));
+    // Doorstroom: de elementtest alleen met flow, anders stookt hij droog.
+    oq_fe_io_runtime::runtime().set_element_test_flow_ok(!inline_element || last_inline_.flow_ok);
 
     update_levels_(now_ms, dt_ms, out);
     oq_fe_dhw_bridge::state().element_only_requested = element_only;
     track_legionella_(out, now_ms);
-    update_tank_model_(now_ms, out, fsm_element || eo_on_);
+    update_tank_model_(now_ms, out, element_request);
     publish_();
   }
 
@@ -329,7 +359,8 @@ class Runtime {
     const auto levels = lv::compute_levels(li);
 
     auto& bridge = oq_fe_dhw_bridge::state();
-    bridge.mode_requested = out.hp_dhw_request || out.block_cv_priority;
+    // Doorstroom: ook CM10 (pompen aan, compressor uit) zolang het element flow nodig heeft.
+    bridge.mode_requested = out.hp_dhw_request || out.block_cv_priority || inline_circulation_;
     bridge.hp1_level = levels.hp1;
     bridge.hp2_level = levels.hp2;
     bridge.owner_hp = levels.owner;
@@ -355,6 +386,32 @@ class Runtime {
     idle_ = false;
     eo_on_ = false;
     was_cm11_ = false;
+    inline_guard_.reset();
+    last_inline_ = oq_fe_element::InlineOutput{};
+    inline_circulation_ = false;
+  }
+
+  static bool inline_element_() {
+    return id(oq_dhw_element_placement).active_index().value_or(0) ==
+           static_cast<size_t>(oq_fe_element::Placement::INLINE);
+  }
+
+  static oq_fe_element::InlineConfig inline_config_() {
+    oq_fe_element::InlineConfig cfg;
+    cfg.min_flow_lph = id(oq_dhw_inline_min_flow_lph).state;
+    cfg.max_supply_c = id(oq_dhw_inline_max_supply_c).state;
+    return cfg;
+  }
+
+  // Alleen de overgangen loggen, niet elke tick.
+  void log_inline_edges_(bool requested, const oq_fe_element::InlineOutput& guard) {
+    if (requested && guard.supply_blocked && !last_inline_.supply_blocked) {
+      ESP_LOGW("fe.dhw", "Inline element held off: supply %.1f C at or above limit, or invalid",
+               id(water_supply_temp_selected).state);
+    }
+    if (guard.no_flow_fault && !last_inline_.no_flow_fault) {
+      ESP_LOGE("fe.dhw", "Inline element requested without flow for 60 s");
+    }
   }
 
   void update_tank_model_(uint32_t now_ms, const oq_dhw::Outputs& out, bool element_on) {
@@ -458,7 +515,10 @@ class Runtime {
   oq_fe_dhw_levels::RiseTracker rise_{};
 
   bool eo_on_ = false;
-  bool was_cm11_ = false;
+  bool was_cm11_ = false;  // thermostaatcontext: CM11, of CM10 bij een doorstroomelement
+  oq_fe_element::InlineGuard inline_guard_{};
+  oq_fe_element::InlineOutput last_inline_{};
+  bool inline_circulation_ = false;
   uint32_t hold_start_ms_ = 0;
   oq_fe_dhw_tank::TapState tap_{};
   oq_fe_dhw_tank::LearnerState learner_{};
