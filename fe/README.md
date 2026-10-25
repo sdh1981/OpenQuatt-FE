@@ -84,6 +84,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | NVS-1 | Meting vrije NVS-entries: log, sensor "NVS vrije entries", waarschuwing onder 20. Voorstel: `fe/nvs-voorstel.md` | fe.12 |
 | — | Bij een storing gaan Snelboost en Legionella nu uit; meldingen tonen de vertaalde naam | fe.13 |
 | NVS-2 | DHW-instellingen in één NVS-record (35 numbers, 10 switches, 1 select); tappingentellers naar RAM. Meting: 14 vrij na volle back-up (fe.13) → 141 vrij (fe.14) | fe.14 |
+| Handleiding | Ombouwhandleiding met onderdelen, hydraulische schema's (tank en doorstroom) en elektrisch schema: `fe/handleiding-ombouw.md` en `.pdf` (bouwen: `fe/handleiding/build_pdf.py`) | docs |
 | 6 | Bankproef en ingebruikname van de Q (incl. NVS-meetprotocol). Checklist: `fe/ingebruikname-q.md` | bankproef klaar; ingebruikname gepland |
 
 ## Haken in upstream-bestanden

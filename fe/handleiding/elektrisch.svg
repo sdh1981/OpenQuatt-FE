@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13">
+  <title>Elektrisch schema – Q, 3-wegklep, contactor, element en tanksensoren</title>
+  <rect width="960" height="600" fill="#ffffff"/>
+  <text x="24" y="30" font-size="18" font-weight="700" fill="#111">Elektrisch schema (beide varianten)</text>
+
+  <!-- Q controller -->
+  <rect x="30" y="60" width="200" height="420" rx="10" fill="#eef2f7" stroke="#263238" stroke-width="2"/>
+  <text x="130" y="85" text-anchor="middle" font-weight="700">Heatpump Controller Q</text>
+
+  <text x="45" y="112" font-weight="700">R1</text>
+  <text x="200" y="104" text-anchor="end" font-size="12" fill="#777">NC (vrij)</text>
+  <text x="200" y="124" text-anchor="end" font-size="12">COM</text>
+  <text x="200" y="144" text-anchor="end" font-size="12">NO</text>
+  <circle cx="230" cy="100" r="4" fill="#777"/><circle cx="230" cy="120" r="4" fill="#111"/><circle cx="230" cy="140" r="4" fill="#111"/>
+
+  <text x="45" y="202" font-weight="700">R2</text>
+  <text x="200" y="194" text-anchor="end" font-size="12" fill="#777">NC (vrij)</text>
+  <text x="200" y="214" text-anchor="end" font-size="12">COM</text>
+  <text x="200" y="234" text-anchor="end" font-size="12">NO</text>
+  <circle cx="230" cy="190" r="4" fill="#777"/><circle cx="230" cy="210" r="4" fill="#111"/><circle cx="230" cy="230" r="4" fill="#111"/>
+
+  <text x="45" y="302" font-weight="700">T</text>
+  <text x="200" y="294" text-anchor="end" font-size="12">+3.3V</text>
+  <text x="200" y="314" text-anchor="end" font-size="12">GND</text>
+  <text x="200" y="334" text-anchor="end" font-size="12">DATA</text>
+  <circle cx="230" cy="290" r="4" fill="#c62828"/><circle cx="230" cy="310" r="4" fill="#111"/><circle cx="230" cy="330" r="4" fill="#2e7d32"/>
+
+  <text x="45" y="392" font-weight="700" font-size="12">Tweakers boven</text>
+  <text x="200" y="404" text-anchor="end" font-size="12">GPIO44</text>
+  <text x="200" y="424" text-anchor="end" font-size="12">GND</text>
+  <circle cx="230" cy="400" r="4" fill="#6a1b9a"/><circle cx="230" cy="420" r="4" fill="#111"/>
+  <text x="45" y="460" font-size="11" fill="#555">GPIO43 vrij laten</text>
+
+  <!-- Stuurspanning -->
+  <text x="300" y="58" font-size="12" font-weight="700">L (stuurspanning)</text>
+  <text x="300" y="72" font-size="11" fill="#555">via zekering F1 2 A</text>
+  <polyline points="290,78 290,210 234,210" fill="none" stroke="#5d4037" stroke-width="2.5"/>
+  <line x1="290" y1="120" x2="234" y2="120" stroke="#5d4037" stroke-width="2.5"/>
+  <circle cx="290" cy="120" r="3.5" fill="#5d4037"/>
+
+  <!-- N rail -->
+  <line x1="930" y1="70" x2="930" y2="490" stroke="#1565c0" stroke-width="2.5"/>
+  <text x="922" y="64" text-anchor="end" font-size="12" font-weight="700" fill="#1565c0">N</text>
+
+  <!-- 3-wegklep -->
+  <rect x="560" y="95" width="200" height="60" rx="6" fill="#fff" stroke="#111" stroke-width="2"/>
+  <text x="660" y="118" text-anchor="middle" font-weight="700">3-wegklep (veerretour)</text>
+  <text x="660" y="138" text-anchor="middle" font-size="12">motor 230 V</text>
+  <line x1="234" y1="140" x2="560" y2="140" stroke="#5d4037" stroke-width="2.5"/>
+  <text x="400" y="134" text-anchor="middle" font-size="11">R1 NO → klep L (Boiler)</text>
+  <line x1="760" y1="125" x2="930" y2="125" stroke="#1565c0" stroke-width="2.5"/>
+
+  <!-- Hulpcontact -->
+  <rect x="560" y="370" width="200" height="56" rx="6" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="660" y="392" text-anchor="middle" font-weight="700" fill="#6a1b9a">hulpcontact klep</text>
+  <text x="660" y="410" text-anchor="middle" font-size="11" fill="#6a1b9a">potentiaalvrij, dicht in Boiler-stand</text>
+  <line x1="234" y1="400" x2="560" y2="400" stroke="#6a1b9a" stroke-width="2"/>
+  <line x1="234" y1="420" x2="560" y2="420" stroke="#111" stroke-width="2"/>
+  <line x1="745" y1="155" x2="745" y2="370" stroke="#6a1b9a" stroke-width="1.5" stroke-dasharray="3 4"/>
+  <text x="752" y="345" font-size="10" fill="#6a1b9a">mechanisch gekoppeld</text>
+
+  <!-- R2 naar contactor via STB en flowschakelaar -->
+  <line x1="234" y1="230" x2="320" y2="230" stroke="#5d4037" stroke-width="2.5"/>
+  <rect x="320" y="212" width="90" height="36" rx="5" fill="#fff" stroke="#ef6c00" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="365" y="234" text-anchor="middle" font-size="12">STB 90 °C</text>
+  <line x1="410" y1="230" x2="430" y2="230" stroke="#5d4037" stroke-width="2.5"/>
+  <rect x="430" y="212" width="100" height="36" rx="5" fill="#fff" stroke="#ef6c00" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="480" y="234" text-anchor="middle" font-size="12">flowschakelaar</text>
+  <text x="425" y="270" text-anchor="middle" font-size="11" fill="#ef6c00">gestippeld: alleen bij Doorstroom</text>
+  <text x="425" y="284" text-anchor="middle" font-size="11" fill="#ef6c00">(bij Tank: doorverbinden)</text>
+  <line x1="530" y1="230" x2="560" y2="230" stroke="#5d4037" stroke-width="2.5"/>
+  <rect x="560" y="205" width="110" height="50" rx="6" fill="#fff" stroke="#111" stroke-width="2"/>
+  <text x="615" y="226" text-anchor="middle" font-weight="700">K1 spoel</text>
+  <text x="615" y="244" text-anchor="middle" font-size="11">A1 – A2, 230 V</text>
+  <line x1="670" y1="230" x2="930" y2="230" stroke="#1565c0" stroke-width="2.5"/>
+
+  <!-- Hoofdstroom element -->
+  <text x="560" y="462" font-size="12" font-weight="700">L2 · groep 16 A · aardlek 30 mA</text>
+  <line x1="560" y1="490" x2="660" y2="490" stroke="#5d4037" stroke-width="3"/>
+  <rect x="660" y="475" width="70" height="30" rx="4" fill="#fff" stroke="#111" stroke-width="2"/>
+  <text x="695" y="495" text-anchor="middle" font-size="12">K1 contact</text>
+  <line x1="730" y1="490" x2="790" y2="490" stroke="#5d4037" stroke-width="3"/>
+  <rect x="790" y="475" width="80" height="30" rx="4" fill="#ef6c00"/>
+  <text x="830" y="495" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">3 kW</text>
+  <line x1="870" y1="490" x2="930" y2="490" stroke="#1565c0" stroke-width="3"/>
+  <text x="695" y="520" text-anchor="middle" font-size="10" fill="#555">K1 = contactor: spoel (boven) schakelt dit hoofdcontact</text>
+
+  <!-- Dallas -->
+  <rect x="330" y="300" width="130" height="34" rx="5" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="395" y="321" text-anchor="middle" font-size="12">DS18B20 tank top</text>
+  <rect x="330" y="340" width="130" height="34" rx="5" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="395" y="361" text-anchor="middle" font-size="12">DS18B20 tank bottom</text>
+  <polyline points="234,290 300,290 300,345" fill="none" stroke="#c62828" stroke-width="1.5"/>
+  <polyline points="234,310 290,310 290,355" fill="none" stroke="#111" stroke-width="1.5"/>
+  <polyline points="234,330 280,330 280,365" fill="none" stroke="#2e7d32" stroke-width="1.5"/>
+  <line x1="300" y1="310" x2="330" y2="310" stroke="#c62828" stroke-width="1.5"/>
+  <line x1="300" y1="345" x2="330" y2="345" stroke="#c62828" stroke-width="1.5"/>
+  <line x1="290" y1="318" x2="330" y2="318" stroke="#111" stroke-width="1.5"/>
+  <line x1="290" y1="355" x2="330" y2="355" stroke="#111" stroke-width="1.5"/>
+  <line x1="280" y1="326" x2="330" y2="326" stroke="#2e7d32" stroke-width="1.5"/>
+  <line x1="280" y1="365" x2="330" y2="365" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="470" y="328" font-size="11" fill="#555">beide parallel op T</text>
+  <text x="470" y="342" font-size="11" fill="#555">(+3.3V / GND / DATA)</text>
+
+  <!-- Voetnoten -->
+  <text x="24" y="548" font-size="11" fill="#333">R1 en R2 schakelen alleen de klepmotor en de contactorspoel, nooit het element zelf. Het element (13 A) loopt over het hoofdcontact van K1 (minimaal 20 A AC-1).</text>
+  <text x="24" y="565" font-size="11" fill="#333">Het hulpcontact van de klep moet potentiaalvrij zijn: nooit 230 V op GPIO44. STB en flowschakelaar staan hardwired in serie met de spoel en werken ook als de firmware faalt.</text>
+  <text x="24" y="582" font-size="11" fill="#333">Element op een eigen groep op L2, gescheiden van de buitenunits op L1. Laat het 230 V-deel aansluiten door een erkend installateur.</text>
+</svg>
