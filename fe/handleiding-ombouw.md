@@ -40,6 +40,12 @@ Twijfel je? Kies **Tank**: eenvoudiger, en zonder afhankelijkheid van de pompen.
 
 ## 3. Hydraulisch
 
+### Overzicht Doorstroom: leidingwerk en bedrading samen
+
+De doorstroomverwarmer zit in de aanvoer, vóór de 3-wegklep. De details staan in de schema's hieronder en in hoofdstuk 4.
+
+![Overzicht doorstroomvariant – leidingwerk en bedrading](handleiding/overzicht-doorstroom.svg)
+
 ### Tank
 
 ![Hydraulisch schema – element in de tank](handleiding/hydraulisch-tank.svg)
