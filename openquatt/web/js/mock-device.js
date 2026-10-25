@@ -2554,6 +2554,9 @@
     setEntity("text_sensor", "DHW Test Element Status", { state: "Off", value: "Off" });
     setEntity("binary_sensor", "DHW Valve Feedback", { value: true });
     setEntity("sensor", "NVS vrije entries", { value: 168 });
+    setEntity("select", "DHW element location", { state: "Inline", value: "Inline", option: ["Tank", "Inline"] });
+    setEntity("number", "DHW inline element min flow", { value: 400, min_value: 250, max_value: 1000, step: 10, uom: "L/h" });
+    setEntity("number", "DHW inline element max supply", { value: 75, min_value: 60, max_value: 85, step: 1, uom: "°C" });
     setEntity("text_sensor", "DHW 1-Wire adressen", { state: "0x5000000048509928, 0x6700000022860328", value: "0x5000000048509928, 0x6700000022860328" });
 
     applyCoolingDewPointSourceSelection();

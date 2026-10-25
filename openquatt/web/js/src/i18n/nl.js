@@ -4674,6 +4674,7 @@ export default {
     reasonDhwClearedCopy: "De warmwatercyclus is klaar of gestopt; de regeling gaat terug naar de normale stand.",
     nvsLow: "Opslag bijna vol",
     nvsLowValue: "{entries} vrij: wijzigingen worden mogelijk niet bewaard",
+    faultElementNoFlow: "Geen flow voor element",
   },
   overview: {
     monitoringTitle: "Installatiebewaking",
@@ -5225,5 +5226,14 @@ export default {
     benchStatusNotAllowed: "Niet toegestaan",
     nvsTitle: "Vrije opslag (NVS)",
     nvsCopy: "Vrije plaatsen voor bewaarde instellingen. Onder 20 worden wijzigingen mogelijk niet meer bewaard. Wordt na het opstarten en daarna elk uur gemeten.",
+    elementSection: "Element",
+    elementSectionCopyTank: "Het 3 kW-element zit in de boilertank en heeft geen flow nodig.",
+    elementSectionCopyInline: "Het 3 kW-element zit als doorstroomelement in de aanvoer, vóór de 3-wegklep. Het mag alleen aan met flow; tijdens het stoken staat de klep op Boiler en draaien de pompen (CM10, compressor uit).",
+    elementPlacementTitle: "Plaats van het element",
+    elementPlacementCopy: "Tank: dompelelement in de boiler. Inline: doorstroomelement vóór de 3-wegklep, met STB en flowschakelaar in serie met de contactor.",
+    inlineMinFlowTitle: "Minimale flow voor het element",
+    inlineMinFlowCopy: "Het element gaat pas aan na 10 s flow boven deze waarde en direct uit als de flow eronder zakt. Na 60 s elementvraag zonder flow volgt een storing.",
+    inlineMaxSupplyTitle: "Maximale aanvoertemperatuur element",
+    inlineMaxSupplyCopy: "Gemeten met de aanvoersensor ná het element. Het element gaat uit op deze waarde en weer aan 5 K lager. De hardwired STB blijft de laatste beveiliging.",
   },
 };

@@ -4674,6 +4674,7 @@ export default {
     reasonDhwClearedCopy: "The hot water cycle finished or stopped; control returns to normal.",
     nvsLow: "Storage nearly full",
     nvsLowValue: "{entries} free: changes may not be saved",
+    faultElementNoFlow: "No flow for element",
   },
   overview: {
     monitoringTitle: "Installation monitoring",
@@ -5225,5 +5226,14 @@ export default {
     benchStatusNotAllowed: "Not allowed",
     nvsTitle: "Free storage (NVS)",
     nvsCopy: "Free slots for stored settings. Below 20, changes may no longer be saved. Measured after startup and then every hour.",
+    elementSection: "Element",
+    elementSectionCopyTank: "The 3 kW element sits in the hot water tank and needs no flow.",
+    elementSectionCopyInline: "The 3 kW element is an inline heater in the supply, before the three-way valve. It may only run with flow; while heating the valve is set to the tank and the pumps run (CM10, compressor off).",
+    elementPlacementTitle: "Element location",
+    elementPlacementCopy: "Tank: immersion heater in the tank. Inline: inline heater before the three-way valve, with a safety thermostat and flow switch in series with the contactor.",
+    inlineMinFlowTitle: "Minimum flow for the element",
+    inlineMinFlowCopy: "The element only starts after 10 s of flow above this value and stops immediately when flow drops below it. After 60 s of element demand without flow, a fault is raised.",
+    inlineMaxSupplyTitle: "Maximum supply temperature for the element",
+    inlineMaxSupplyCopy: "Measured by the supply sensor after the element. The element stops at this value and restarts 5 K lower. The hard-wired safety thermostat remains the last line of defence.",
   },
 };

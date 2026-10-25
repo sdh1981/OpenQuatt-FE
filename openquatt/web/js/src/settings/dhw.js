@@ -103,6 +103,17 @@ function renderLegionellaSection() {
   ]));
 }
 
+function renderElementSection() {
+  const inline = String(getEntityValue("dhwElementPlacement") ?? "") === "Inline";
+  const inlineGuard = grid([
+    number("dhwInlineMinFlow", t("settingsDhw.inlineMinFlowTitle"), t("settingsDhw.inlineMinFlowCopy")),
+    number("dhwInlineMaxSupply", t("settingsDhw.inlineMaxSupplyTitle"), t("settingsDhw.inlineMaxSupplyCopy")),
+  ]);
+  return section(t("settingsDhw.elementSection"), inline ? t("settingsDhw.elementSectionCopyInline") : t("settingsDhw.elementSectionCopyTank"), grid([
+    hasEntity("dhwElementPlacement") ? renderSettingsSelectField("dhwElementPlacement", t("settingsDhw.elementPlacementTitle"), t("settingsDhw.elementPlacementCopy")) : "",
+  ]) + (inline ? inlineGuard : ""));
+}
+
 function renderElementOnlySection() {
   return section(t("settingsDhw.elementOnlySection"), t("settingsDhw.elementOnlySectionCopy"), grid([
     toggle("dhwElementOnly", t("settingsDhw.elementOnlyTitle"), t("settingsDhw.elementOnlyCopy")),
@@ -166,6 +177,7 @@ export function renderSettingsDhwSections() {
     renderLevelSection(),
     renderBoostSection(),
     renderLegionellaSection(),
+    renderElementSection(),
     renderElementOnlySection(),
     renderTankSection(),
   ];

@@ -38,6 +38,9 @@ class Runtime {
   // Bankproeven alleen als de DHW-regeling niets doet (rust of storing).
   void set_tests_allowed(bool allowed) { tests_allowed_ = allowed; }
 
+  // Doorstroomelement: de elementtest mag alleen met flow.
+  void set_element_test_flow_ok(bool ok) { element_test_flow_ok_ = ok; }
+
   // Gevonden adressen op de T-bus (1-Wire), komma-gescheiden.
   static std::string onewire_addresses() {
     std::string out;
@@ -66,10 +69,11 @@ class Runtime {
 
     const auto valve =
         oq_fe_io::update_test(valve_test_, id(fe_test_dhw_valve).state, tests_allowed_, now_ms, cfg.valve_test_max_ms);
-    const auto element = oq_fe_io::update_test(
-        element_test_, id(fe_test_dhw_element).state,
-        tests_allowed_ && oq_fe_io::element_test_allowed(id(fe_dhw_tank_top).state, cfg.element_test_max_top_c), now_ms,
-        cfg.element_test_max_ms);
+    const auto element =
+        oq_fe_io::update_test(element_test_, id(fe_test_dhw_element).state,
+                              tests_allowed_ && element_test_flow_ok_ &&
+                                  oq_fe_io::element_test_allowed(id(fe_dhw_tank_top).state, cfg.element_test_max_top_c),
+                              now_ms, cfg.element_test_max_ms);
     valve_test_on_ = valve.on;
     element_test_on_ = element.on;
     if (valve.release_request) {
@@ -121,6 +125,7 @@ class Runtime {
   }
 
   bool tests_allowed_ = false;
+  bool element_test_flow_ok_ = true;
   bool onewire_logged_ = false;
   bool dhw_valve_request_ = false;
   bool dhw_element_request_ = false;

@@ -77,3 +77,11 @@ test("the bench test section only renders with the test switches", async () => {
     state.entities = previous;
   }
 });
+
+test("the element placement and inline limits are hot water settings and backed up", () => {
+  for (const key of ["dhwElementPlacement", "dhwInlineMinFlow", "dhwInlineMaxSupply"]) {
+    assert.ok(ENTITY_DEFS[key]?.optional, `${key} is optional`);
+    assert.ok(DHW_SETTING_KEYS.includes(key), `${key} is a hot water setting`);
+    assert.ok(SETTINGS_BACKUP_KEYS.includes(key), `${key} is backed up`);
+  }
+});

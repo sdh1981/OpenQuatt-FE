@@ -106,6 +106,35 @@ number:
     restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
+  # Doorstroomelement: bewaking (alleen actief bij "DHW element location" = Inline).
+  - platform: template
+    id: oq_dhw_inline_min_flow_lph
+    name: "DHW inline element min flow"
+    icon: mdi:waves-arrow-right
+    unit_of_measurement: "L/h"
+    entity_category: config
+    min_value: 250
+    max_value: 1000
+    step: 10
+    initial_value: 400
+    optimistic: true
+    restore_value: true
+    mode: box
+
+  - platform: template
+    id: oq_dhw_inline_max_supply_c
+    name: "DHW inline element max supply"
+    icon: mdi:thermometer-alert
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 60
+    max_value: 85
+    step: 1
+    initial_value: 75
+    optimistic: true
+    restore_value: true
+    mode: box
+
 switch:
   - platform: template
     id: oq_dhw_tap_detect_enable
@@ -134,6 +163,21 @@ select:
       - Vast
       - Home Assistant
     initial_option: Vast
+
+  # Plaats van het 3 kW-element (fe/element-optie-voorstel.md). Bewust los
+  # bewaard en niet in het DHW-instellingenrecord: bepaalt de veiligheid van de
+  # elementsturing en moet direct na de start kloppen.
+  - platform: template
+    id: oq_dhw_element_placement
+    name: "DHW element location"
+    icon: mdi:heating-coil
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    options:
+      - Tank
+      - Inline
+    initial_option: Tank
 
 button:
   - platform: template
