@@ -119,7 +119,6 @@ export function createSettingsState() {
     lastKnownInstallationTopology: "",
     quickStartModalOpen: true,
     loadingEntities: true,
-    oduFirmwareAvailable: false,
     entities: {},
     optionalMissingEntities: {},
     renderedAppView: "",

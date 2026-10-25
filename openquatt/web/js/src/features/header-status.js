@@ -12,7 +12,6 @@ import { formatDeviceClock, formatUptimeFromMeta, getDeviceIpAddress, getInstall
 import { getFirmwareUpdateEntity, getUpdateStatus, isFirmwareUpdateAvailable } from "./firmware-update.js";
 import { renderMqttModal, renderMqttSensorsModal } from "./mqtt.js";
 import { renderOduEepromDumpModal } from "./odu-eeprom-dump.js";
-import { renderOduFirmwareMenuLink } from "./odu-firmware.js";
 import { renderOduDefrostModal } from "./odu-defrost.js";
 import { renderOduRuntimeFrequencyModal } from "./odu-runtime-frequency.js";
 import { renderOduSettingsModal } from "./odu-settings.js";
@@ -34,7 +33,6 @@ import { render } from "../core/render-scheduler.js";
   export function getHeaderRenderSignature() {
     return [
       state.interfacePanelOpen ? "open" : "closed",
-      state.oduFirmwareAvailable,
       getLocale(),
       state.nativeOpen ? "native" : "app",
       state.appView,
@@ -227,10 +225,6 @@ import { render } from "../core/render-scheduler.js";
     if (state.systemModal === "connectivity") {
       return false;
     }
-    if (state.interfacePanelOpen &&
-        Boolean(state.root.querySelector("[data-oq-odu-firmware-link]")) !== state.oduFirmwareAvailable) {
-      return false;
-    }
 
     const statusGrid = state.root.querySelector(".oq-helper-status-grid");
     if (!statusGrid) {
@@ -403,7 +397,6 @@ import { render } from "../core/render-scheduler.js";
           <p class="oq-helper-hub-kicker">${escapeHtml(t("header.systemSection"))}</p>
           ${renderHeaderStatusGrid()}
           <div class="oq-helper-hub-actions oq-helper-hub-actions--single">
-            ${renderOduFirmwareMenuLink()}
             <button class="oq-helper-hub-action oq-helper-hub-action--warning" type="button" data-oq-action="open-restart-confirm">
               ${escapeHtml(t("header.restart"))}
             </button>
