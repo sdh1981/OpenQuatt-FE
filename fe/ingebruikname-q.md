@@ -4,6 +4,9 @@ Checklist voor het in gebruik nemen van de Heatpump Controller Q met de FE-firmw
 
 ## 0. Vooraf
 
+De ombouw zelf (onderdelen, hydraulisch en elektrisch schema, tank of doorstroom) staat in [`handleiding-ombouw.md`](handleiding-ombouw.md), ook als printbare PDF (`handleiding-ombouw.pdf`).
+
+
 - [ ] **Bankproef afgerond:** R1, R2, klepstand, tanksensoren. Zie `fe/README.md` → Bankproef.
 - [ ] **NVS-meting gedaan en beoordeeld** volgens `fe/nvs-voorstel.md`. Vereist: **≥ 20 vrij** na het terugzetten van een volledige back-up. Tussen 20 en 100 komt eerst stap 2 (bundelen).
 - [ ] **Brug tussen GPIO44 en GND verwijderd.** Die zat er op de bank; met de brug meldt de klep altijd "Boiler".
