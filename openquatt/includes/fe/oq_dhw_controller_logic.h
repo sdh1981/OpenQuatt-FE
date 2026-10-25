@@ -26,6 +26,8 @@ enum class Fault : uint8_t {
   FLOW_OUT_OF_RANGE = 5,
   TIMEOUT = 6,
   LOCKOUT = 7,
+  // FE: doorstroomelement gevraagd zonder flow (oq_fe_element_logic.h).
+  ELEMENT_NO_FLOW = 8,
 };
 
 struct Config {
@@ -108,6 +110,8 @@ struct Inputs {
 
   bool hp_fault_active = false;
   bool lockout_active = false;
+  // FE: de doorstroombewaking meldt een elementvraag zonder flow.
+  bool element_no_flow = false;
 
   // Blocks new cycle starts without faulting a running cycle (e.g. outside time window).
   // Does NOT block legionella (hygiene-critical).
@@ -178,6 +182,8 @@ inline const char* fault_name(Fault f) {
       return "TIMEOUT";
     case Fault::LOCKOUT:
       return "LOCKOUT";
+    case Fault::ELEMENT_NO_FLOW:
+      return "ELEMENT_NO_FLOW";
   }
   return "UNKNOWN";
 }
@@ -693,6 +699,10 @@ class Controller {
     }
     if (in.hp_fault_active) {
       latch_fault_(Fault::HP_FAULT, in.now_ms);
+      return;
+    }
+    if (in.element_no_flow) {
+      latch_fault_(Fault::ELEMENT_NO_FLOW, in.now_ms);
       return;
     }
 

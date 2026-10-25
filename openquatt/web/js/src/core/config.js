@@ -749,6 +749,9 @@
     ["dhwElementOnlyTarget", DOMAIN_NUMBER, "DHW Element Only Target"],
     ["dhwElementOnlyOffDelta", DOMAIN_NUMBER, "DHW Element Only Off Delta"],
     ["dhwRoomTemp", DOMAIN_NUMBER, "DHW ruimtetemperatuur"],
+    ["dhwElementPlacement", DOMAIN_SELECT, "DHW element location"],
+    ["dhwInlineMinFlow", DOMAIN_NUMBER, "DHW inline element min flow"],
+    ["dhwInlineMaxSupply", DOMAIN_NUMBER, "DHW inline element max supply"],
     ["apply", DOMAIN_BUTTON, "Complete setup", false],
     ["reset", DOMAIN_BUTTON, "Reset setup state", false],
   ]);
@@ -2150,6 +2153,9 @@
     "dhwElementOnlyTarget",
     "dhwElementOnlyOffDelta",
     "dhwRoomTemp",
+    "dhwElementPlacement",
+    "dhwInlineMinFlow",
+    "dhwInlineMaxSupply",
   ];
 
   export const SETTINGS_KEYS = [
@@ -2290,6 +2296,9 @@
         "dhwElementOnlyTarget",
         "dhwElementOnlyOffDelta",
         "dhwRoomTemp",
+        "dhwElementPlacement",
+        "dhwInlineMinFlow",
+        "dhwInlineMaxSupply",
       ],
     },
     {

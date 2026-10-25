@@ -84,6 +84,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | NVS-1 | Meting vrije NVS-entries: log, sensor "NVS vrije entries", waarschuwing onder 20. Voorstel: `fe/nvs-voorstel.md` | fe.12 |
 | — | Bij een storing gaan Snelboost en Legionella nu uit; meldingen tonen de vertaalde naam | fe.13 |
 | NVS-2 | DHW-instellingen in één NVS-record (35 numbers, 10 switches, 1 select); tappingentellers naar RAM. Meting: 14 vrij na volle back-up (fe.13) → 141 vrij (fe.14) | fe.14 |
+| Element | Instelling "Plaats van het element": Tank of Doorstroom (vóór de 3-wegklep), met flowvergrendeling, aanvoergrens, nadraaien en storing "Geen flow voor element". Voorstel: `fe/element-optie-voorstel.md` | fe.15 |
 | 6 | Bankproef en ingebruikname van de Q (incl. NVS-meetprotocol). Checklist: `fe/ingebruikname-q.md` | bankproef klaar; ingebruikname gepland |
 
 ## Haken in upstream-bestanden
@@ -92,14 +93,14 @@ Elke haak staat achter `#if OQ_FE_TARGET` of is in een upstream-build onbereikba
 
 | Bestand | Haak |
 |---|---|
-| `control/oq_supervisory_state_runtime.h` | DHW- en element-only-vraag, basisdoel CM10/CM11, CM1-voor- en naloop, CM-namen; pompen en sticky-bescherming in CM11 zoals in CM0; logcodes voor CM10/CM11 |
+| `control/oq_supervisory_state_runtime.h` | DHW- en element-only-vraag, basisdoel CM10/CM11, CM1-voor- en naloop, CM-namen; pompen en sticky-bescherming in CM11 zoals in CM0; logcodes voor CM10/CM11; eigen includes van `oq_hp_supervisory_logic.h` en `boiler/oq_boiler_logic.h` (ESPHome sorteert de map-include niet, dus de volgorde in `main.cpp` verschilt per bestandssysteem) |
 | `control/oq_control_mode_log_logic.h` | Redenen `dhw_request`, `element_only`, `dhw_request_cleared` |
 | `components/openquatt_decision_log` | Redencodes 200–202 (eigen FE-bereik) en hun namen |
 | `control/oq_supervisory_state_logic.h` | `hold_cm1_until_hp_idle` ook voor CM11 |
 | `control/oq_thermal_request_logic.h` | CM10 → verwarmstand met `STRATEGY_DHW`; niveaus uit `oq_fe_dhw_bridge` |
 | `control/oq_flow_runtime.h` | Flow-setpoint in CM10; CM11 is flow-idle |
 | `control/oq_thermal_actuator_runtime.h` | CM10 in de melding "frequentiegrens blokkeert start" |
-| `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (73 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
+| `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (75 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
 | `scripts/check_nvs_budget.py` | `int64_t`/`uint64_t` als globaltype en het FE-instellingenrecord (7 entries) als custom record |
 
 ## Control modes

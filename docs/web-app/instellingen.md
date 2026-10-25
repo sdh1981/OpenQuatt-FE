@@ -225,7 +225,8 @@ Alleen in OpenQuatt FE (Full Electric met een boiler, 3-wegklep en 3 kW-element)
 - **Compressorniveau:** de niveaumapping op de inlaattemperatuur, de zachte aanloop, de modus met één warmtepomp en het bijschakelen van de tweede unit.
 - **Snelboost:** de doelen en de warmtepompstop.
 - **Legionella:** het doel en de overdracht naar het element, met de laatste en de volgende run.
-- **Alleen element (CM11):** de schakelaar en de thermostaat op tank bottom.
+- **Element:** de plaats van het 3 kW-element. *Tank* is een dompelelement in de boiler. *Doorstroom* is een element in de aanvoer vóór de 3-wegklep: dat gaat alleen aan na 10 s flow boven het ingestelde minimum, gaat uit op de maximale aanvoertemperatuur, en laat de pompen na het uitschakelen 60 s nadraaien. Tijdens het stoken staat de klep op Boiler en draaien de pompen in CM10 met de compressor uit. 60 s elementvraag zonder flow geeft de storing *Geen flow voor element*.
+- **Alleen element (CM11):** de schakelaar en de thermostaat op tank bottom. Bij een doorstroomelement draaien de pompen mee zolang het element stookt.
 - **Tank:** tapdetectie, het tankvolume, de ruimtetemperatuur en het geleerde warmteverlies.
 
 Op het **Overzicht** staat op FE een kaart *Warm water*: tank boven en onder, de status en een eventuele storing, de geschatte tijd tot de tank klaar is, het element, de stand van de driewegklep en het aantal tappingen van vandaag. Daaronder staan Snelboost, Legionella nu, Blokkeren en (alleen bij een storing) Storing wissen; elke knop vraagt eerst om bevestiging. Bij een storing zet de firmware Snelboost en Legionella nu zelf uit; na Storing wissen start je ze zo nodig opnieuw. CM10 en CM11 krijgen een eigen label in de statuskaart.
