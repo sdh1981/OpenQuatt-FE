@@ -85,6 +85,7 @@ Na een merge controleer je met `esphome config configs/heatpump_controller_q/duo
 | — | Bij een storing gaan Snelboost en Legionella nu uit; meldingen tonen de vertaalde naam | fe.13 |
 | NVS-2 | DHW-instellingen in één NVS-record (35 numbers, 10 switches, 1 select); tappingentellers naar RAM. Meting: 14 vrij na volle back-up (fe.13) → 141 vrij (fe.14) | fe.14 |
 | Element | Instelling "Plaats van het element": Tank of Doorstroom (vóór de 3-wegklep), met flowvergrendeling, aanvoergrens, nadraaien en storing "Geen flow voor element". Voorstel: `fe/element-optie-voorstel.md` | fe.15 |
+| Watergrens | Instelling "DHW maximum water temperature" (standaard 65 °C): zolang de klep bevestigd op DHW staat geldt die in plaats van "Maximum water temperature", met de noodstop 5 K hoger. Een noodstop is geen HP_FAULT meer: in de HP-fase gaat de cyclus door naar het element of eindigt, bij legionella neemt het element het over. Aanleiding: met het CV-maximum op 45 °C sloeg de noodstop bij 50 °C aan het einde van legionella toe | fe.16 |
 | Handleiding | Ombouwhandleiding met onderdelen, hydraulische schema's (tank en doorstroom) en elektrisch schema: `fe/handleiding-ombouw.md` en `.pdf` (bouwen: `fe/handleiding/build_pdf.py`) | docs |
 | 6 | Bankproef en ingebruikname van de Q (incl. NVS-meetprotocol). Checklist: `fe/ingebruikname-q.md` | bankproef klaar; ingebruikname gepland |
 
@@ -101,6 +102,7 @@ Elke haak staat achter `#if OQ_FE_TARGET` of is in een upstream-build onbereikba
 | `control/oq_thermal_request_logic.h` | CM10 → verwarmstand met `STRATEGY_DHW`; niveaus uit `oq_fe_dhw_bridge` |
 | `control/oq_flow_runtime.h` | Flow-setpoint in CM10; CM11 is flow-idle |
 | `control/oq_thermal_actuator_runtime.h` | CM10 in de melding "frequentiegrens blokkeert start" |
+| `control/oq_thermal_limits_runtime.h` | DHW-maximum (`oq_dhw_max_water_temp_c`) zolang `oq_fe_dhw_bridge::state().dhw_owns_supply`, anders "Maximum water temperature" |
 | `scripts/tests/test_supervisory_state_runtime_contract.py`, `test_thermal_request_runtime_contract.py` | Regelbudget + FE-delta (75 / 19) en de `thermal_req`-regel met `dhw_req`. Bij een upstream-merge de delta opnieuw tellen |
 | `scripts/check_nvs_budget.py` | `int64_t`/`uint64_t` als globaltype en het FE-instellingenrecord (7 entries) als custom record |
 

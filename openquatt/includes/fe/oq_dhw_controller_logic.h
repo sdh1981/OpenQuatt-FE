@@ -109,6 +109,10 @@ struct Inputs {
   float flow_lph = NAN;
 
   bool hp_fault_active = false;
+  // Upstream's water-noodstop (aanvoer boven het maximum + 5 K) stopt de
+  // compressoren. Dat is geen warmtepompstoring: de HP-fase eindigt alsof de
+  // stopgrens bereikt is, en het element maakt het zo nodig af (fe.16).
+  bool water_trip_active = false;
   bool lockout_active = false;
   // FE: de doorstroombewaking meldt een elementvraag zonder flow.
   bool element_no_flow = false;
@@ -358,7 +362,7 @@ class Controller {
         } else {
           stop_temp_reached = (in.tank_top_c >= cfg.hp_stop_top_c);
         }
-        if (stop_temp_reached || elapsed_in_state_(in.now_ms) >= cfg.hp_max_runtime_ms) {
+        if (stop_temp_reached || in.water_trip_active || elapsed_in_state_(in.now_ms) >= cfg.hp_max_runtime_ms) {
           if (cfg.enable_boost_after_hp && in.tank_top_c < cfg.boost_target_c) {
             if (cfg.boost_hp_assist_enable && plausible_temp_(in.tank_bottom_c, cfg) &&
                 in.tank_bottom_c < cfg.boost_hp_assist_bottom_c) {
@@ -404,7 +408,7 @@ class Controller {
         // Door de YAML bewaakte persgas-/water-uit grens: HP's eruit, element
         // maakt de rest af. Bewust niet terugkeerbaar binnen dezelfde boost --
         // opnieuw opstarten in een al hete tank levert alleen nieuwe drukpieken.
-        if (boost_hp_assist_active_ && in.hp_thermal_limit_active) {
+        if (boost_hp_assist_active_ && (in.hp_thermal_limit_active || in.water_trip_active)) {
           boost_hp_assist_active_ = false;
         }
         if (in.tank_top_c >= target_top_c) {
@@ -653,7 +657,8 @@ class Controller {
       // graden naar legionella_target_c alleen af.
       const bool top_ceiling_hit =
           plausible_temp_(in.tank_top_c, cfg) && in.tank_top_c >= cfg.legionella_hp_top_ceiling_c;
-      if (hp_check_c >= leg_hp_stop || top_ceiling_hit || elapsed_in_state_(in.now_ms) >= cfg.hp_max_runtime_ms) {
+      if (hp_check_c >= leg_hp_stop || top_ceiling_hit || in.water_trip_active ||
+          elapsed_in_state_(in.now_ms) >= cfg.hp_max_runtime_ms) {
         hp_phase_done_ = true;
         legionella_hold_start_ms_ = 0;
       }

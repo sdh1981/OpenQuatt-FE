@@ -109,6 +109,7 @@ class Store {
     for (size_t i = 0; i < kSwitchCount; ++i) set_switch_bit(record, i, switches[i]->state);
     const auto index = select_()->active_index();
     record.select = index.has_value() && *index < kNoSelect ? static_cast<uint8_t>(*index) : kNoSelect;
+    record.dhw_max_water_c = encode_whole_c(id(oq_dhw_max_water_temp_c).state);
     return record;
   }
 
@@ -146,6 +147,12 @@ class Store {
     select::Select* select = select_();
     if (record.select != kNoSelect && record.select < select->size()) {
       select->make_call().set_index(record.select).perform();
+    }
+    float max_water_c = NAN;
+    number::Number* max_water = &id(oq_dhw_max_water_temp_c);
+    if (decode_whole_c(record.dhw_max_water_c, max_water_c) && max_water_c >= max_water->traits.get_min_value() &&
+        max_water_c <= max_water->traits.get_max_value() && max_water_c != max_water->state) {
+      max_water->make_call().set_value(max_water_c).perform();
     }
   }
 

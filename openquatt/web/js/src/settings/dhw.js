@@ -48,6 +48,7 @@ function renderControlSection() {
     number("dhwHpLevel", t("settingsDhw.hpLevelTitle"), t("settingsDhw.hpLevelCopy")),
     number("dhwFlowSetpoint", t("settingsDhw.flowSetpointTitle"), t("settingsDhw.flowSetpointCopy")),
     number("dhwMinRest", t("settingsDhw.minRestTitle"), t("settingsDhw.minRestCopy")),
+    number("dhwMaxWaterTemp", t("settingsDhw.maxWaterTempTitle"), t("settingsDhw.maxWaterTempCopy")),
     toggle("dhwBoostAfterHp", t("settingsDhw.boostAfterHpTitle"), t("settingsDhw.boostAfterHpCopy")),
     number("dhwBoostTarget", t("settingsDhw.boostTargetTitle"), t("settingsDhw.boostTargetCopy")),
     toggle("dhwWindowEnable", t("settingsDhw.windowTitle"), t("settingsDhw.windowCopy")),

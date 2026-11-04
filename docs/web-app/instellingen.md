@@ -221,7 +221,7 @@ Wil je externe bronwaarden of toestemmingssignalen via MQTT aanleveren, configur
 
 Alleen in OpenQuatt FE (Full Electric met een boiler, 3-wegklep en 3 kW-element). Deze groep bundelt de warmwaterregeling:
 
-- **Regeling:** de start- en stopgrens, het compressorniveau, de flow, de rust tussen cycli, de boost na de warmtepompfase en het tijdvenster.
+- **Regeling:** de start- en stopgrens, het compressorniveau, de flow, de rust tussen cycli, de maximale watertemperatuur tijdens warm water, de boost na de warmtepompfase en het tijdvenster. Zolang de klep op warm water staat, geldt die watergrens (standaard 65 °C, noodstop 5 °C hoger) in plaats van de maximale watertemperatuur van de verwarming.
 - **Compressorniveau:** de niveaumapping op de inlaattemperatuur, de zachte aanloop, de modus met één warmtepomp en het bijschakelen van de tweede unit.
 - **Snelboost:** de doelen en de warmtepompstop.
 - **Legionella:** het doel en de overdracht naar het element, met de laatste en de volgende run.

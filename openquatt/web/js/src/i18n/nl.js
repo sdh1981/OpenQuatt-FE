@@ -5107,6 +5107,8 @@ export default {
     minRestCopy: "Wachttijd tussen twee warmwatercycli.",
     boostAfterHpTitle: "Element na de HP-fase",
     boostAfterHpCopy: "Het element maakt de tank af tot het boostdoel.",
+    maxWaterTempTitle: "Maximale watertemperatuur warm water",
+    maxWaterTempCopy: "Grens voor de aanvoer zolang de klep op warm water staat; de noodstop ligt 5 °C hoger. Op CV geldt weer de maximale watertemperatuur van de verwarming.",
     boostTargetTitle: "Boostdoel",
     boostTargetCopy: "Tank top waarop het element na de HP-fase stopt.",
     windowTitle: "Tijdvenster",

@@ -25,7 +25,10 @@ struct Record {
   float numbers[kNumberCount];
   uint16_t switches;  // bit i = schakelaar i
   uint8_t select;     // index van de gekozen optie, of kNoSelect
-  uint8_t reserved;
+  // Maximale watertemperatuur tijdens warm water in hele °C (fe.16). Was een
+  // reservebyte die altijd 0 was: 0 betekent "niet gezet", dus de standaard.
+  // Zo laden records van vóór fe.16 zonder versiewissel.
+  uint8_t dhw_max_water_c;
   uint32_t crc;
 };
 static_assert(sizeof(Record) == 156, "DHW settings record layout changed; bump kVersion");
@@ -56,7 +59,6 @@ inline void seal(Record& record) {
   record.version = kVersion;
   record.number_count = static_cast<uint8_t>(kNumberCount);
   record.switch_count = static_cast<uint8_t>(kSwitchCount);
-  record.reserved = 0;
   record.crc = record_crc(record);
 }
 
@@ -67,7 +69,22 @@ inline bool is_valid(const Record& record) {
 
 // Bitgewijs vergelijken: zo telt ook NAN -> NAN als "gelijk".
 inline bool same_values(const Record& a, const Record& b) {
-  return std::memcmp(a.numbers, b.numbers, sizeof(a.numbers)) == 0 && a.switches == b.switches && a.select == b.select;
+  return std::memcmp(a.numbers, b.numbers, sizeof(a.numbers)) == 0 && a.switches == b.switches &&
+         a.select == b.select && a.dhw_max_water_c == b.dhw_max_water_c;
+}
+
+// DHW-watergrens als byte: afgerond op hele graden; buiten 1..255 of ongeldig
+// wordt het 0 (niet gezet).
+inline uint8_t encode_whole_c(float value_c) {
+  if (!(value_c >= 1.0f && value_c <= 255.0f)) return 0;
+  return static_cast<uint8_t>(value_c + 0.5f);
+}
+
+// 0 = niet gezet: dan blijft de standaardwaarde van de entiteit staan.
+inline bool decode_whole_c(uint8_t stored, float& value_c) {
+  if (stored == 0) return false;
+  value_c = static_cast<float>(stored);
+  return true;
 }
 
 inline bool switch_bit(const Record& record, size_t index) { return ((record.switches >> index) & 1u) != 0; }
