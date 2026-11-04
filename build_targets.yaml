@@ -17,7 +17,7 @@ targets:
     display_name: OpenQuatt Heatpump Controller Q Single
     chip_family: ESP32-S3
   - id: heatpump_controller_q_duo
-    status: enabled
+    status: planned
     hardware: heatpump_controller_q
     hardware_label: Electropaultje Heatpump Controller Q-edition
     topology: duo
