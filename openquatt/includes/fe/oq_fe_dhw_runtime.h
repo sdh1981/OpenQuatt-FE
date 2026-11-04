@@ -81,6 +81,10 @@ class Runtime {
     if (inline_element) cfg.legionella_use_coil_circulation = true;
     oq_dhw::Inputs in = inputs_(now_ms);
     in.element_no_flow = inline_element && last_inline_.no_flow_fault;
+    // De watergrens rekent elke strategy-tick (5 s) opnieuw. Vlak na een wissel
+    // tussen CV- en DHW-maximum kan de noodstop nog bij de oude grens horen.
+    in.water_trip_active = in.water_trip_active &&
+                           oq_fe_dhw_bridge::water_limit_settled(owns_supply_changed_ms_, now_ms, kWaterLimitSettleMs);
     if (element_only) {
       // Element-only: geen nieuwe cycli en geen snelboost. Legionella mag wel
       // (de start-inhibit geldt niet voor legionella), en een lopende cyclus
@@ -129,6 +133,11 @@ class Runtime {
       element_request = fsm_element || eo_on_;
     }
     oq_fe_io_runtime::runtime().set_dhw_requests(valve_request, element_request);
+    // De DHW-watergrens geldt alleen met een bevestigde DHW-stand; zonder
+    // terugmelding blijft het CV-maximum staan.
+    const bool owns_supply = valve_request && in.valve_feedback_valid && !in.valve_feedback_cv;
+    if (owns_supply != oq_fe_dhw_bridge::state().dhw_owns_supply) owns_supply_changed_ms_ = now_ms;
+    oq_fe_dhw_bridge::state().dhw_owns_supply = owns_supply;
     const bool at_rest = out.state == oq_dhw::State::IDLE_CV || out.state == oq_dhw::State::FAULT;
     oq_fe_io_runtime::runtime().set_tests_allowed(oq_fe_io::bench_tests_allowed(at_rest, element_only));
     // Doorstroom: de elementtest alleen met flow, anders stookt hij droog.
@@ -196,7 +205,9 @@ class Runtime {
     in.valve_feedback_cv = !id(fe_dhw_valve_feedback).state;
     in.flow_valid = id(flow_rate_selected).has_state() && !isnan(id(flow_rate_selected).state);
     in.flow_lph = in.flow_valid ? id(flow_rate_selected).state : NAN;
-    in.hp_fault_active = all_hps_faulted_() || id(oq_water_temp_hard_trip_active);
+    // Alleen echte warmtepompstoringen; de water-noodstop is een aparte invoer.
+    in.hp_fault_active = all_hps_faulted_();
+    in.water_trip_active = id(oq_water_temp_hard_trip_active);
     in.lockout_active = id(oq_dhw_lockout).state;
     in.start_inhibit = window_inhibit_();
     in.solar_boost_request = false;  // fase 4c
@@ -526,6 +537,9 @@ class Runtime {
   int last_day_ = -1;
   float room_ha_c_ = NAN;
   uint32_t room_ha_ms_ = 0;
+  // Twee strategy-ticks (2 x 5 s) plus marge; zie water_limit_settled().
+  static constexpr uint32_t kWaterLimitSettleMs = 12000;
+  uint32_t owns_supply_changed_ms_ = 0;
   float eta_ready_min_ = NAN;
   float eta_legionella_min_ = NAN;
 

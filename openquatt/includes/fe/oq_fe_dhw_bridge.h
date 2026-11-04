@@ -28,6 +28,9 @@ struct State {
   int owner_hp = 0;
   const char* reason = "dhw_idle";
   float flow_setpoint_lph = NAN;
+  // De klep staat bevestigd op DHW en FE vraagt hem daar: het aanvoerwater gaat
+  // naar de boilerspiraal, niet naar het CV-circuit. Dan geldt de DHW-watergrens.
+  bool dhw_owns_supply = false;
 };
 
 inline State& state() {
@@ -44,6 +47,21 @@ inline int base_target(int upstream_base_target, bool dhw_requested, bool elemen
   if (dhw_requested) return flow_interlock ? 1 : CM_DHW;
   if (element_only) return frost ? 98 : CM_ELEMENT_ONLY;
   return upstream_base_target;
+}
+
+// Maximale watertemperatuur voor upstream's watergrens (oq_thermal_limits). Het
+// CV-maximum beschermt het CV-/vloercircuit; zolang DHW het aanvoercircuit heeft,
+// gaat het water naar de boiler en geldt het DHW-maximum. Zonder geldig
+// DHW-maximum blijft het CV-maximum staan.
+inline float water_limit_max_c(bool dhw_owns_supply, float dhw_max_c, float cv_max_c) {
+  return (dhw_owns_supply && isfinite(dhw_max_c)) ? dhw_max_c : cv_max_c;
+}
+
+// Na een wissel van het geldende maximum telt de noodstop pas na settle_ms weer
+// mee: upstream rekent hem periodiek opnieuw, dus tot dan kan hij nog bij de
+// vorige grens horen. changed_ms == 0: nooit gewisseld.
+inline bool water_limit_settled(uint32_t changed_ms, uint32_t now_ms, uint32_t settle_ms) {
+  return changed_ms == 0 || static_cast<uint32_t>(now_ms - changed_ms) >= settle_ms;
 }
 
 // Modi waarin warmtepompen of de pomp actief kunnen zijn: element-only gaat

@@ -5107,6 +5107,8 @@ export default {
     minRestCopy: "Waiting time between two hot water cycles.",
     boostAfterHpTitle: "Element after the HP phase",
     boostAfterHpCopy: "The element finishes the tank to the boost target.",
+    maxWaterTempTitle: "Hot water maximum water temperature",
+    maxWaterTempCopy: "Supply limit while the valve is on hot water; the emergency stop is 5 °C higher. On heating the heating maximum water temperature applies again.",
     boostTargetTitle: "Boost target",
     boostTargetCopy: "Tank top at which the element stops after the HP phase.",
     windowTitle: "Time window",

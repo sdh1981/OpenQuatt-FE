@@ -12,6 +12,7 @@ const FE_ENTITY_LABEL_KEYS = [
   ["dhwHpLevel", "settingsDhw.hpLevelTitle"],
   ["dhwFlowSetpoint", "settingsDhw.flowSetpointTitle"],
   ["dhwMinRest", "settingsDhw.minRestTitle"],
+  ["dhwMaxWaterTemp", "settingsDhw.maxWaterTempTitle"],
   ["dhwBoostAfterHp", "settingsDhw.boostAfterHpTitle"],
   ["dhwBoostTarget", "settingsDhw.boostTargetTitle"],
   ["dhwWindowEnable", "settingsDhw.windowTitle"],

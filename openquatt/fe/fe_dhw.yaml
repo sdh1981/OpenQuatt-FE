@@ -130,6 +130,24 @@ number:
     restore_value: false  # in het DHW-instellingenrecord
     mode: box
 
+  # Upstream's "Maximum water temperature" beschermt het CV-/vloercircuit. Zolang
+  # de klep bevestigd op DHW staat gaat de aanvoer naar de boiler en geldt deze
+  # grens; de noodstop ligt 5 K hoger (fe.16). Hele graden: het record bewaart
+  # hem als één byte.
+  - platform: template
+    id: oq_dhw_max_water_temp_c
+    name: "DHW maximum water temperature"
+    icon: mdi:thermometer-alert
+    unit_of_measurement: "°C"
+    entity_category: config
+    min_value: 50
+    max_value: 75
+    step: 1
+    initial_value: 65
+    optimistic: true
+    restore_value: false  # in het DHW-instellingenrecord
+    mode: box
+
   - platform: template
     id: oq_dhw_boost_target_c
     name: "DHW boost target"
